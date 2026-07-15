@@ -109,7 +109,7 @@ class OrchestrationAgent(AgentBase):
         logger.info(f"Orchestrating {len(sorted_schedule)} agents")
 
         # 准备上下文信息
-        context = self._prepare_context(intention_data)
+        context = await self._prepare_context(intention_data)
 
         # 并行执行智能体（按优先级分组）
         results = []
@@ -140,7 +140,7 @@ class OrchestrationAgent(AgentBase):
 
         # 更新记忆
         if self.memory_manager:
-            self._update_memory(intention_data, results)
+            await self._update_memory(intention_data, results)
 
         return Msg(
             name=self.name,
@@ -148,7 +148,7 @@ class OrchestrationAgent(AgentBase):
             role="assistant"
         )
 
-    def _prepare_context(self, intention_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _prepare_context(self, intention_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         准备上下文信息，供子智能体使用
 
@@ -168,11 +168,11 @@ class OrchestrationAgent(AgentBase):
         # 从记忆系统获取上下文
         if self.memory_manager:
             # 短期记忆：最近对话
-            recent_context = self.memory_manager.short_term.get_recent_context(3)
+            recent_context = await self.memory_manager.short_term.get_recent_context(3)
             context["recent_dialogue"] = recent_context
 
             # 长期记忆：用户偏好
-            preferences = self.memory_manager.long_term.get_preference()
+            preferences = await self.memory_manager.long_term.get_preference()
             context["user_preferences"] = preferences
 
         return context
@@ -389,7 +389,7 @@ class OrchestrationAgent(AgentBase):
 
         return aggregated
 
-    def _update_memory(self, intention_data: Dict[str, Any], results: List[Dict]):
+    async def _update_memory(self, intention_data: Dict[str, Any], results: List[Dict]):
         """
         更新记忆系统
 
@@ -425,30 +425,30 @@ class OrchestrationAgent(AgentBase):
                         # 根据 action 决定操作
                         if pref_action == "append":
                             # 追加模式：获取现有值并追加
-                            current_prefs = self.memory_manager.long_term.get_preference()
+                            current_prefs = await self.memory_manager.long_term.get_preference()
                             existing_value = current_prefs.get(pref_type)
 
                             # 如果现有值是列表，追加
                             if isinstance(existing_value, list):
                                 if pref_value not in existing_value:
                                     existing_value.append(pref_value)
-                                self.memory_manager.long_term.save_preference(pref_type, existing_value)
+                                await self.memory_manager.long_term.save_preference(pref_type, existing_value)
                                 logger.info(f"Appended to {pref_type}: {pref_value}, total: {existing_value}")
                             else:
                                 # 如果现有值不是列表，创建新列表
                                 new_list = [existing_value, pref_value] if existing_value else [pref_value]
-                                self.memory_manager.long_term.save_preference(pref_type, new_list)
+                                await self.memory_manager.long_term.save_preference(pref_type, new_list)
                                 logger.info(f"Created list for {pref_type}: {new_list}")
                         else:
                             # 覆盖模式：直接保存新值
-                            self.memory_manager.long_term.save_preference(pref_type, pref_value)
+                            await self.memory_manager.long_term.save_preference(pref_type, pref_value)
                             logger.info(f"Replaced {pref_type}: {pref_value}")
 
                 # 旧格式兼容：preferences 是字典
                 elif isinstance(preferences_data, dict):
                     for pref_type, value in preferences_data.items():
                         if value and pref_type != "has_preferences" and pref_type != "error":
-                            self.memory_manager.long_term.save_preference(pref_type, value)
+                            await self.memory_manager.long_term.save_preference(pref_type, value)
                             logger.info(f"Updated {pref_type}: {value} (legacy format)")
 
             # 如果是行程规划智能体，保存行程到长期记忆
@@ -473,7 +473,7 @@ class OrchestrationAgent(AgentBase):
 
                     # 保存到长期记忆（只要有目的地就保存）
                     if destination:
-                        self.memory_manager.long_term.save_trip_history({
+                        await self.memory_manager.long_term.save_trip_history({
                             "origin": origin,
                             "destination": destination,
                             "start_date": start_date,

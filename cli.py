@@ -27,8 +27,9 @@ import json
 # 导入系统组件
 from agentscope.model import OpenAIChatModel
 from config_agentscope import init_agentscope
-from config import LLM_CONFIG, SYSTEM_CONFIG, RESILIENCE_CONFIG
+from config import LLM_CONFIG, SYSTEM_CONFIG, RESILIENCE_CONFIG, DB_CONFIG, CACHE_CONFIG
 from context.memory_manager import MemoryManager
+from context.long_term_memory import close_pool
 from utils.circuit_breaker import CircuitBreaker, CircuitOpenError
 from utils.llm_resilience import retry_with_backoff, run_health_check as check_llm_health
 from agents.intention_agent import IntentionAgent
@@ -109,10 +110,18 @@ class TravelCLI:
             )
 
             # 初始化记忆管理器（传入LLM模型用于总结）
+            # DB/Cache 自动探测：Docker 开着就用 PostgreSQL/Redis，否则降级到文件/内存
             self.memory_manager = MemoryManager(
                 user_id=self.user_id,
                 session_id=self.session_id,
-                llm_model=self.model
+                llm_model=self.model,
+                redis_url=CACHE_CONFIG.get("url") if CACHE_CONFIG.get("enabled") else None,
+                db_enabled=DB_CONFIG.get("enabled", False),
+                host=DB_CONFIG.get("host", "localhost"),
+                port=DB_CONFIG.get("port", 5432),
+                database=DB_CONFIG.get("database", "travel_planner"),
+                user=DB_CONFIG.get("user", "travel"),
+                password=DB_CONFIG.get("password", "travel123"),
             )
 
             # 初始化意图识别智能体（必须预加载）
@@ -176,7 +185,7 @@ class TravelCLI:
 
             # 1. 获取长期记忆摘要与上下文（原逻辑不变）
             long_term_summary = await self._get_long_term_summary(user_input)
-            recent_context = self.memory_manager.short_term.get_recent_context(n_turns=5)
+            recent_context = await self.memory_manager.short_term.get_recent_context(n_turns=5)
             context_messages = []
             if long_term_summary:
                 context_messages.append(Msg(name="system", content=long_term_summary, role="system"))
@@ -210,7 +219,7 @@ class TravelCLI:
                 return
 
         # 4. 添加用户输入到短期记忆（原逻辑不变）
-        self.memory_manager.add_message("user", user_input)
+        await self.memory_manager.add_message("user", user_input)
 
         # 5. 调度智能体
         orchestration_result = None
@@ -240,7 +249,7 @@ class TravelCLI:
         self._display_agents_called(result_data)
         self.console.print()
         self._display_results(result_data)
-        self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
+        await self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
 
     def _display_agents_called(self, result_data: dict):
         """显示调用的智能体列表"""
@@ -310,7 +319,7 @@ class TravelCLI:
         summary_parts = []
 
         # 1. 用户偏好信息（始终加载）
-        prefs = self.memory_manager.long_term.get_preference()
+        prefs = await self.memory_manager.long_term.get_preference()
         if prefs:
             pref_lines = ["【用户背景信息】（来自长期记忆，可用于推断缺失信息）"]
 
@@ -334,7 +343,7 @@ class TravelCLI:
             summary_parts.append(chat_summary)
 
         # 3. 智能筛选相关历史行程
-        all_trips = self.memory_manager.long_term.get_trip_history(limit=None)
+        all_trips = await self.memory_manager.long_term.get_trip_history(limit=None)
         if all_trips:
             # 筛选相关的行程（地点匹配）
             relevant_trips = []
@@ -631,10 +640,10 @@ class TravelCLI:
         }
         return agent_display_names.get(agent_name, agent_name)
 
-    def show_status(self):
+    async def show_status(self):
         """显示当前状态"""
         # 记忆统计
-        full_context = self.memory_manager.get_full_context()
+        full_context = await self.memory_manager.get_full_context()
         short_term_stats = full_context["short_term"]["statistics"]
         long_term_stats = full_context["long_term"]["statistics"]
 
@@ -659,7 +668,7 @@ class TravelCLI:
         self.console.print()
 
         # 历史对话
-        recent_messages = self.memory_manager.short_term.get_recent_context(n_turns=5)
+        recent_messages = await self.memory_manager.short_term.get_recent_context(n_turns=5)
         if recent_messages:
             dialogue_table = Table(title="最近对话 (最多5轮)", show_header=True, header_style="bold cyan")
             dialogue_table.add_column("角色", style="cyan", width=8)
@@ -708,9 +717,9 @@ class TravelCLI:
             self.console.print(f"LLM 服务: [red]不可用[/red] - {msg}", style="bold")
         self.console.print()
 
-    def show_history(self):
+    async def show_history(self):
         """显示历史行程"""
-        history = self.memory_manager.long_term.get_trip_history(10)
+        history = await self.memory_manager.long_term.get_trip_history(10)
 
         if not history:
             self.console.print("暂无历史行程", style="yellow")
@@ -734,9 +743,9 @@ class TravelCLI:
 
         self.console.print(table)
 
-    def show_preferences(self):
+    async def show_preferences(self):
         """显示用户偏好"""
-        prefs = self.memory_manager.long_term.get_preference()
+        prefs = await self.memory_manager.long_term.get_preference()
 
         table = Table(title="用户偏好", show_header=True, header_style="bold magenta")
         table.add_column("类型", style="cyan")
@@ -769,22 +778,22 @@ class TravelCLI:
                 command = user_input.strip().lower()
 
                 if command == "exit":
-                    self.memory_manager.end_session()
+                    await self.memory_manager.end_session()
                     self.console.print("再见！", style="cyan")
                     break
                 elif command == "help":
                     self.print_help()
                 elif command == "status":
-                    self.show_status()
+                    await self.show_status()
                 elif command == "health":
                     await self.run_health_check()
                 elif command == "clear":
-                    self.memory_manager.short_term.clear()
+                    await self.memory_manager.short_term.clear()
                     self.console.print("✓ 已清空短期记忆", style="green")
                 elif command == "history":
-                    self.show_history()
+                    await self.show_history()
                 elif command == "preferences":
-                    self.show_preferences()
+                    await self.show_preferences()
                 else:
                     # 处理自然语言查询
                     await self.process_query(user_input)
@@ -819,12 +828,23 @@ def run_health_check_standalone() -> int:
     return 1
 
 
+async def _shutdown():
+    """Clean up resources before exit."""
+    try:
+        await close_pool()
+    except Exception:
+        pass
+
+
 def main():
     """主函数"""
     if len(sys.argv) > 1 and sys.argv[1].strip().lower() == "health":
         exit(run_health_check_standalone())
     cli = TravelCLI()
-    asyncio.run(cli.run())
+    try:
+        asyncio.run(cli.run())
+    finally:
+        asyncio.run(_shutdown())
 
 
 if __name__ == "__main__":

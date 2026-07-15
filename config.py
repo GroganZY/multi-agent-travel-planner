@@ -41,3 +41,26 @@ RESILIENCE_CONFIG = {
     "circuit_half_open_successes": 2,      # 半开状态下连续成功多少次后关闭
     "health_check_timeout_sec": 10.0,      # 健康检查请求超时（秒）
 }
+
+# PostgreSQL — Long-term memory persistence
+# Set enabled=True and start `docker compose up -d` to use
+DB_CONFIG = {
+    "enabled": False,       # toggle to True when Docker PostgreSQL is running
+    "host": "localhost",
+    "port": 5432,
+    "database": "travel_planner",
+    "user": "travel",
+    "password": "travel123",
+    "min_size": 2,
+    "max_size": 10,
+}
+
+# Redis — Short-term memory cache + preference/summary cache layer
+# Set enabled=True and start `docker compose up -d` to use
+CACHE_CONFIG = {
+    "enabled": False,       # toggle to True when Docker Redis is running
+    "url": "redis://localhost:6379/0",
+    "preferences_ttl_sec": 86400,     # 24 hours
+    "summary_ttl_sec": 1800,           # 30 minutes
+    "short_term_ttl_sec": 3600,        # 1 hour
+}

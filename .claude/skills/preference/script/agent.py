@@ -49,7 +49,7 @@ class PreferenceAgent(AgentBase):
         # 获取当前已保存的偏好
         current_preferences = {}
         if self.memory_manager:
-            current_preferences = self.memory_manager.long_term.get_preference()
+            current_preferences = await self.memory_manager.long_term.get_preference()
 
         # 格式化当前偏好，便于展示
         current_prefs_str = json.dumps(current_preferences, ensure_ascii=False, indent=2)

@@ -97,10 +97,10 @@ class MemoryQueryAgent(AgentBase):
 
         if self.memory_manager:
             # 获取旅行历史（最近50条）
-            trip_history = self.memory_manager.long_term.get_trip_history(limit=50)
+            trip_history = await self.memory_manager.long_term.get_trip_history(limit=50)
 
             # 获取用户偏好
-            preferences = self.memory_manager.long_term.get_preference()
+            preferences = await self.memory_manager.long_term.get_preference()
 
             # 获取历史对话摘要（如果有LLM的话）
             try:
