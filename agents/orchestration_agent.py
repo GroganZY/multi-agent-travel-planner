@@ -172,7 +172,7 @@ class OrchestrationAgent(AgentBase):
             context["recent_dialogue"] = recent_context
 
             # 长期记忆：用户偏好
-            preferences = await self.memory_manager.long_term.get_preference()
+            preferences = await self.memory_manager._get_cached_preferences()
             context["user_preferences"] = preferences
 
         return context
@@ -481,5 +481,9 @@ class OrchestrationAgent(AgentBase):
                             "purpose": purpose
                         })
                         logger.info(f"Saved trip to long-term memory: {origin} -> {destination}")
+
+        # 偏好变更后失效 Redis 缓存，下次读取时自动重建
+        if self.memory_manager:
+            await self.memory_manager.invalidate_preference_cache()
 
         logger.info("Memory updated after orchestration")

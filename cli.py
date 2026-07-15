@@ -319,7 +319,7 @@ class TravelCLI:
         summary_parts = []
 
         # 1. 用户偏好信息（始终加载）
-        prefs = await self.memory_manager.long_term.get_preference()
+        prefs = await self.memory_manager._get_cached_preferences()
         if prefs:
             pref_lines = ["【用户背景信息】（来自长期记忆，可用于推断缺失信息）"]
 
@@ -745,7 +745,7 @@ class TravelCLI:
 
     async def show_preferences(self):
         """显示用户偏好"""
-        prefs = await self.memory_manager.long_term.get_preference()
+        prefs = await self.memory_manager._get_cached_preferences()
 
         table = Table(title="用户偏好", show_header=True, header_style="bold magenta")
         table.add_column("类型", style="cyan")

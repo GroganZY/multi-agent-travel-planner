@@ -1,18 +1,24 @@
 """
-Memory Manager — unified async API over two-tier memory.
-- Short-term: Redis (with in-memory fallback)
+Memory Manager — unified async API over two-tier memory + Redis caching.
+- Short-term: Redis List (with in-memory fallback)
 - Long-term:  PostgreSQL (with JSON-file fallback)
+- Cache:      Redis Hash (preferences) + Redis String (LLM summary)
 """
 from __future__ import annotations
 
 from typing import Dict, Any, List, Optional
 import asyncio
+import hashlib
+import json
 import logging
 
 from .short_term_memory import ShortTermMemory
 from .long_term_memory import LongTermMemory, close_pool, configure_pool
 
 logger = logging.getLogger(__name__)
+
+PREF_CACHE_TTL_SEC = 86400     # preference cache: 24 hours
+SUMMARY_CACHE_TTL_SEC = 1800    # LLM summary cache: 30 minutes
 
 
 class MemoryManager:
@@ -30,6 +36,7 @@ class MemoryManager:
         self.user_id = user_id
         self.session_id = session_id
         self.llm_model = llm_model
+        self._redis = None
 
         self.short_term = ShortTermMemory(
             user_id=user_id,
@@ -43,10 +50,91 @@ class MemoryManager:
             **db_kwargs,
         )
 
+        if redis_url:
+            self._try_connect_redis(redis_url)
+
         if db_kwargs:
             configure_pool(**db_kwargs)
 
         logger.info("MemoryManager initialized user=%s session=%s db=%s", user_id, session_id, db_enabled)
+
+    # ------------------------------------------------------------------
+    # Redis connection
+    # ------------------------------------------------------------------
+
+    def _try_connect_redis(self, url: str) -> None:
+        try:
+            import redis.asyncio as aioredis
+            self._redis = aioredis.from_url(url, decode_responses=False)
+            logger.info("MemoryManager: connected to Redis for caching")
+        except Exception as exc:
+            logger.warning("MemoryManager: Redis unavailable (%s), caching disabled", exc)
+            self._redis = None
+
+    async def _redis_ok(self) -> bool:
+        if self._redis is None:
+            return False
+        try:
+            await self._redis.ping()
+            return True
+        except Exception:
+            self._redis = None
+            return False
+
+    # ------------------------------------------------------------------
+    # Preference cache (Cache-Aside on Redis Hash)
+    # ------------------------------------------------------------------
+
+    async def _get_cached_preferences(self) -> Dict[str, Any]:
+        """Read preferences: Redis Hash first, fallback to LongTermMemory."""
+        cache_key = f"prefs:{self.user_id}"
+
+        if await self._redis_ok():
+            raw = await self._redis.hgetall(cache_key)
+            if raw:
+                return {
+                    k.decode() if isinstance(k, bytes) else k:
+                    json.loads(v.decode() if isinstance(v, bytes) else v)
+                    for k, v in raw.items()
+                }
+
+        # cache miss — read from storage
+        prefs = await self.long_term.get_preference()
+
+        # write back to cache
+        if await self._redis_ok() and prefs:
+            pipe = self._redis.pipeline()
+            pipe.delete(cache_key)
+            for k, v in prefs.items():
+                if v:
+                    pipe.hset(cache_key, k, json.dumps(v, ensure_ascii=False))
+            pipe.expire(cache_key, PREF_CACHE_TTL_SEC)
+            await pipe.execute()
+
+        return prefs
+
+    async def invalidate_preference_cache(self) -> None:
+        """Delete cached preferences (call after any preference write)."""
+        if await self._redis_ok():
+            await self._redis.delete(f"prefs:{self.user_id}")
+
+    # ------------------------------------------------------------------
+    # LLM summary cache (Redis String + content-hash key)
+    # ------------------------------------------------------------------
+
+    def _summary_cache_key(self, history_str: str, trip_str: str) -> str:
+        digest = hashlib.md5((history_str + "||" + trip_str).encode()).hexdigest()
+        return f"summary:{self.user_id}:{digest}"
+
+    async def _get_cached_summary(self, cache_key: str) -> Optional[str]:
+        if not await self._redis_ok():
+            return None
+        raw = await self._redis.get(cache_key)
+        return raw.decode() if raw else None
+
+    async def _set_cached_summary(self, cache_key: str, summary: str) -> None:
+        if await self._redis_ok():
+            await self._redis.setex(cache_key, SUMMARY_CACHE_TTL_SEC, summary)
 
     # ------------------------------------------------------------------
     # Short-term ops
@@ -68,7 +156,7 @@ class MemoryManager:
                 "statistics": self.short_term.get_statistics(),
             },
             "long_term": {
-                "preferences": await self.long_term.get_preference(),
+                "preferences": await self._get_cached_preferences(),
                 "chat_history": await self.long_term.get_chat_history(10),
                 "trip_history": await self.long_term.get_trip_history(5),
                 "frequent_destinations": await self.long_term.get_frequent_destinations(3),
@@ -84,7 +172,7 @@ class MemoryManager:
             lines.append(long_term_summary)
             lines.append("")
 
-        prefs = await self.long_term.get_preference()
+        prefs = await self._get_cached_preferences()
         has_prefs = any(v for v in prefs.values() if v)
         if has_prefs:
             lines.append("【用户偏好】")
@@ -110,7 +198,7 @@ class MemoryManager:
         logger.info("Session ended: %s", self.session_id)
 
     # ------------------------------------------------------------------
-    # LLM summary (long-term)
+    # LLM summary (long-term) — with Redis content-hash cache
     # ------------------------------------------------------------------
 
     async def get_long_term_summary_async(self, max_messages: int = 50) -> str:
@@ -144,6 +232,13 @@ class MemoryManager:
                 trip_lines.append(f"[{ts}] {origin} -> {dest} - {purpose}")
         trip_str = "\n".join(trip_lines) if trip_lines else "（无行程记录）"
 
+        # ---- Redis content-hash cache ----
+        cache_key = self._summary_cache_key(history_str, trip_str)
+        cached = await self._get_cached_summary(cache_key)
+        if cached:
+            logger.info("Summary cache hit for user=%s", self.user_id)
+            return cached
+
         prompt = (
             "请总结以下历史信息中的关键内容，包括：\n"
             "1. 用户的旅行偏好和习惯\n2. 用户询问过的重要问题\n"
@@ -171,8 +266,13 @@ class MemoryManager:
                 summary = str(response.content)
             else:
                 summary = str(response)
+
+            summary = summary.strip()
+            if summary:
+                await self._set_cached_summary(cache_key, summary)
+
             logger.info("Long-term summary generated (%d chars)", len(summary))
-            return summary.strip()
+            return summary
         except Exception as exc:
             logger.error("Failed to generate long-term summary: %s", exc)
             return ""
