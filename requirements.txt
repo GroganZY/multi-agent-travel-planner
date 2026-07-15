@@ -16,3 +16,9 @@ rich==13.9.4
 
 # 网络搜索（DDGS）
 ddgs==9.10.0
+
+# PostgreSQL 异步驱动
+asyncpg==0.30.0
+
+# Redis 异步客户端
+redis[hiredis]==5.2.1
