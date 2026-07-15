@@ -78,8 +78,16 @@ class MemoryManager:
             await self._redis.ping()
             return True
         except Exception:
-            self._redis = None
+            await self._close_redis()
             return False
+
+    async def _close_redis(self) -> None:
+        if self._redis is not None:
+            try:
+                await self._redis.aclose()
+            except Exception:
+                pass
+            self._redis = None
 
     # ------------------------------------------------------------------
     # Preference cache (Cache-Aside on Redis Hash)

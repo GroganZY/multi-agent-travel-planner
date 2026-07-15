@@ -52,7 +52,7 @@ class ShortTermMemory:
             await self._redis.ping()
             return True
         except Exception:
-            self._redis = None
+            await self.close()
             return False
 
     def _redis_key(self) -> str:
