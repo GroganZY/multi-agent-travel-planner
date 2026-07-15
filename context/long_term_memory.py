@@ -18,14 +18,17 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _pool = None
+_pool_failed = False  # avoid repeated connection attempts after first failure
 _pool_kwargs: Dict[str, Any] = {}
 
 
 async def _get_pool() -> Any:
     """Return the module-level asyncpg connection pool, creating it on first call."""
-    global _pool
+    global _pool, _pool_failed
     if _pool is not None:
         return _pool
+    if _pool_failed:   # already tried and failed this session
+        return None
     try:
         import asyncpg
         _pool = await asyncpg.create_pool(
@@ -40,6 +43,7 @@ async def _get_pool() -> Any:
         logger.info("LongTermMemory: PostgreSQL connection pool created")
         return _pool
     except Exception as exc:
+        _pool_failed = True
         logger.warning("LongTermMemory: PostgreSQL unavailable (%s)", exc)
         return None
 
