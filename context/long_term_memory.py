@@ -327,7 +327,7 @@ class LongTermMemory:
 
     async def save_trip_history(self, trip_info: Dict[str, Any]) -> None:
         pool = await self._ensure_pool()
-        trip_id = trip_info.get("trip_id") or f"trip_{int(datetime.now().timestamp())}"
+        trip_id = trip_info.get("trip_id") or f"trip_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
         if pool is not None:
             await pool.execute(
                 _INSERT_TRIP,

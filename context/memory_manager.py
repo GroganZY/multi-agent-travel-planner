@@ -123,8 +123,9 @@ class MemoryManager:
     # ------------------------------------------------------------------
 
     def _summary_cache_key(self, history_str: str, trip_str: str) -> str:
-        digest = hashlib.md5((history_str + "||" + trip_str).encode()).hexdigest()
-        return f"summary:{self.user_id}:{digest}"
+        h = hashlib.md5(history_str.encode()).hexdigest()
+        t = hashlib.md5(trip_str.encode()).hexdigest()
+        return f"summary:{self.user_id}:{h}:{t}"
 
     async def _get_cached_summary(self, cache_key: str) -> Optional[str]:
         if not await self._redis_ok():
@@ -153,7 +154,7 @@ class MemoryManager:
             "short_term": {
                 "recent_dialogue": await self.short_term.get_recent_context(5),
                 "context_string": await self.short_term.get_context_string(5),
-                "statistics": self.short_term.get_statistics(),
+                "statistics": await self.short_term.get_statistics(),
             },
             "long_term": {
                 "preferences": await self._get_cached_preferences(),
@@ -195,6 +196,7 @@ class MemoryManager:
 
     async def end_session(self) -> None:
         await self.short_term.clear()
+        await self.short_term.close()
         logger.info("Session ended: %s", self.session_id)
 
     # ------------------------------------------------------------------

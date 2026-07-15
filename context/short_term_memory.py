@@ -115,9 +115,26 @@ class ShortTermMemory:
             self._fallback.clear()
         logger.info("Short-term memory cleared")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    async def close(self) -> None:
+        """Release Redis connection pool."""
+        if self._redis is not None:
+            try:
+                await self._redis.aclose()
+            except Exception:
+                pass
+            self._redis = None
+
+    async def get_statistics(self) -> Dict[str, Any]:
+        if await self._redis_available():
+            key = self._redis_key()
+            total = await self._redis.llen(key)
+            return {
+                "total_messages": total,
+                "max_turns": self.max_turns,
+                "backend": "redis",
+            }
         return {
             "total_messages": len(self._fallback),
             "max_turns": self.max_turns,
-            "backend": "redis" if self._redis else "memory",
+            "backend": "memory",
         }

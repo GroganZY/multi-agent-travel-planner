@@ -407,6 +407,7 @@ class OrchestrationAgent(AgentBase):
 
             # 如果是偏好智能体，保存偏好信息到长期记忆
             if agent_name == "preference" and isinstance(data, dict):
+                prefs_written = False
                 preferences_data = data.get("preferences", {})
 
                 # 新格式：preferences 是列表，包含 {type, value, action}
@@ -433,15 +434,18 @@ class OrchestrationAgent(AgentBase):
                                 if pref_value not in existing_value:
                                     existing_value.append(pref_value)
                                 await self.memory_manager.long_term.save_preference(pref_type, existing_value)
+                                prefs_written = True
                                 logger.info(f"Appended to {pref_type}: {pref_value}, total: {existing_value}")
                             else:
                                 # 如果现有值不是列表，创建新列表
                                 new_list = [existing_value, pref_value] if existing_value else [pref_value]
                                 await self.memory_manager.long_term.save_preference(pref_type, new_list)
+                                prefs_written = True
                                 logger.info(f"Created list for {pref_type}: {new_list}")
                         else:
                             # 覆盖模式：直接保存新值
                             await self.memory_manager.long_term.save_preference(pref_type, pref_value)
+                            prefs_written = True
                             logger.info(f"Replaced {pref_type}: {pref_value}")
 
                 # 旧格式兼容：preferences 是字典
@@ -450,6 +454,11 @@ class OrchestrationAgent(AgentBase):
                         if value and pref_type != "has_preferences" and pref_type != "error":
                             await self.memory_manager.long_term.save_preference(pref_type, value)
                             logger.info(f"Updated {pref_type}: {value} (legacy format)")
+                            prefs_written = True
+
+                # 有偏好变更时失效缓存
+                if prefs_written and self.memory_manager:
+                    await self.memory_manager.invalidate_preference_cache()
 
             # 如果是行程规划智能体，保存行程到长期记忆
             if agent_name == "itinerary_planning" and isinstance(data, dict):
@@ -481,9 +490,5 @@ class OrchestrationAgent(AgentBase):
                             "purpose": purpose
                         })
                         logger.info(f"Saved trip to long-term memory: {origin} -> {destination}")
-
-        # 偏好变更后失效 Redis 缓存，下次读取时自动重建
-        if self.memory_manager:
-            await self.memory_manager.invalidate_preference_cache()
 
         logger.info("Memory updated after orchestration")
