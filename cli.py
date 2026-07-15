@@ -51,6 +51,7 @@ class TravelCLI:
         self.model = None
         self._agent_cache = {}  # 智能体缓存
         self.circuit_breaker = None  # 在 initialize_system 中从 RESILIENCE_CONFIG 初始化
+        self._ask_count = 0     # 追问计数器（每会话重置）
 
     def print_banner(self):
         """打印欢迎横幅"""
@@ -245,11 +246,54 @@ class TravelCLI:
         except json.JSONDecodeError:
             result_data = {"error": "解析结果失败"}
 
+        # 6.5 追问逻辑：EventCollection 缺信息且追问未超限 → 追问用户
+        missing = []
+        for r in result_data.get("results", []):
+            if r.get("agent_name") == "event_collection":
+                d = r.get("data", {})
+                if isinstance(d, dict):
+                    missing = d.get("missing_info") or []
+                break
+
+        if missing and self._ask_count < 2:
+            self._ask_count += 1
+            question = await self._generate_follow_up(missing)
+            self.console.print(f"\n💬 {question}", style="yellow")
+            await self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
+            return
+
+        self._ask_count = 0  # 信息齐全，重置
+
         # 7. 显示调用的智能体与最终结果（原逻辑不变）
         self._display_agents_called(result_data)
         self.console.print()
         self._display_results(result_data)
         await self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
+
+    async def _generate_follow_up(self, missing_info: list) -> str:
+        """将缺失信息列表转为自然追问（LLM 仅润色话术）"""
+        fields = ", ".join(missing_info)
+        prompt = (
+            f"用户行程需要补充以下信息：{fields}。"
+            "请用自然友善的语气追问用户，一句话，不要超过 30 字。"
+        )
+        try:
+            response = await self.model([{"role": "user", "content": prompt}])
+            text = ""
+            if hasattr(response, "__aiter__"):
+                async for chunk in response:
+                    if isinstance(chunk, str):
+                        text = chunk
+                    elif hasattr(chunk, "content"):
+                        c = chunk.content
+                        text = c if isinstance(c, str) else str(c)
+            elif hasattr(response, "content"):
+                text = str(response.content)
+            else:
+                text = str(response)
+            return text.strip() if text.strip() else f"请问您的{fields}是？"
+        except Exception:
+            return f"请问您的{fields}是？"
 
     def _display_agents_called(self, result_data: dict):
         """显示调用的智能体列表"""
