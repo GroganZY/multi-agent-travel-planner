@@ -1,86 +1,104 @@
 """
-短期记忆 (Short-term Memory)
-存储当前会话最近的对话历史，用于理解上下文和消歧
+Short-term Memory
+- Redis mode: Redis List with TTL sliding window (distributed, survives restarts)
+- Fallback: in-memory Python list (zero-dependency, always available)
 """
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
+import json
 import logging
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_REDIS_TTL_SEC = 3600       # 1 hour
+DEFAULT_MAX_TURNS = 10
+
 
 class ShortTermMemory:
-    """
-    短期记忆：存储最近的对话历史
-    - 存储最近 5-10 轮对话
-    - 自动淘汰旧消息
-    - 用于上下文理解
-    """
 
-    def __init__(self, max_turns: int = 10):
-        """
-        初始化短期记忆
-
-        Args:
-            max_turns: 最大保存轮数（一轮 = 一对用户-助手消息）
-        """
+    def __init__(
+        self,
+        user_id: str = "default_user",
+        session_id: str = "default",
+        max_turns: int = DEFAULT_MAX_TURNS,
+        redis_url: Optional[str] = None,
+    ):
+        self.user_id = user_id
+        self.session_id = session_id
         self.max_turns = max_turns
-        self.messages: List[Dict[str, Any]] = []
+        self._redis = None
+        self._fallback: List[Dict[str, Any]] = []
 
-    def add_message(self, role: str, content: str, metadata: Dict = None):
-        """
-        添加消息到短期记忆
+        if redis_url:
+            self._try_connect_redis(redis_url)
 
-        Args:
-            role: 角色 (user/assistant)
-            content: 消息内容
-            metadata: 额外的元数据
-        """
+    # ------------------------------------------------------------------
+    # Redis connection
+    # ------------------------------------------------------------------
+
+    def _try_connect_redis(self, url: str) -> None:
+        try:
+            import redis.asyncio as aioredis
+            self._redis = aioredis.from_url(url, decode_responses=False)
+            logger.info("ShortTermMemory: connected to Redis")
+        except Exception as exc:
+            logger.warning("ShortTermMemory: Redis unavailable (%s), using in-memory fallback", exc)
+            self._redis = None
+
+    async def _redis_available(self) -> bool:
+        if self._redis is None:
+            return False
+        try:
+            await self._redis.ping()
+            return True
+        except Exception:
+            self._redis = None
+            return False
+
+    def _redis_key(self) -> str:
+        return f"stm:{self.user_id}:{self.session_id}"
+
+    # ------------------------------------------------------------------
+    # Public API (all async)
+    # ------------------------------------------------------------------
+
+    async def add_message(self, role: str, content: str, metadata: Optional[Dict] = None) -> None:
         message = {
             "role": role,
             "content": content,
             "timestamp": datetime.now().isoformat(),
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
-        self.messages.append(message)
+        if await self._redis_available():
+            payload = json.dumps(message, ensure_ascii=False)
+            key = self._redis_key()
+            await self._redis.rpush(key, payload)
+            max_msgs = self.max_turns * 2
+            await self._redis.ltrim(key, -max_msgs, -1)
+            await self._redis.expire(key, DEFAULT_REDIS_TTL_SEC)
+        else:
+            self._fallback.append(message)
+            max_msgs = self.max_turns * 2
+            if len(self._fallback) > max_msgs:
+                self._fallback = self._fallback[-max_msgs:]
 
-        # 自动淘汰旧消息（保持 max_turns 轮对话）
-        # 每轮 = 2条消息（用户 + 助手）
-        max_messages = self.max_turns * 2
-        if len(self.messages) > max_messages:
-            self.messages = self.messages[-max_messages:]
+    async def get_recent_context(self, n_turns: Optional[int] = None) -> List[Dict[str, Any]]:
+        if await self._redis_available():
+            key = self._redis_key()
+            raw = await self._redis.lrange(key, 0, -1)
+            messages = [json.loads(m) for m in raw]
+        else:
+            messages = list(self._fallback)
 
-        logger.debug(f"Added message to short-term memory: {role}")
-
-    def get_recent_context(self, n_turns: int = None) -> List[Dict[str, Any]]:
-        """
-        获取最近 n 轮对话
-
-        Args:
-            n_turns: 获取轮数，默认为全部
-
-        Returns:
-            最近的消息列表
-        """
         if n_turns is None:
-            return self.messages.copy()
+            return messages
 
-        # n轮 = 2n条消息
-        n_messages = n_turns * 2
-        return self.messages[-n_messages:] if len(self.messages) > n_messages else self.messages.copy()
+        n_msgs = n_turns * 2
+        return messages[-n_msgs:] if len(messages) > n_msgs else messages
 
-    def get_context_string(self, n_turns: int = 5) -> str:
-        """
-        获取最近对话的字符串表示
-
-        Args:
-            n_turns: 获取轮数
-
-        Returns:
-            格式化的对话字符串
-        """
-        messages = self.get_recent_context(n_turns)
+    async def get_context_string(self, n_turns: int = 5) -> str:
+        messages = await self.get_recent_context(n_turns)
         if not messages:
             return "无历史对话"
 
@@ -88,19 +106,18 @@ class ShortTermMemory:
         for msg in messages:
             role_name = "用户" if msg["role"] == "user" else "助手"
             lines.append(f"{role_name}: {msg['content']}")
-
         return "\n".join(lines)
 
-    def clear(self):
-        """清空短期记忆"""
-        self.messages = []
+    async def clear(self) -> None:
+        if await self._redis_available():
+            await self._redis.delete(self._redis_key())
+        else:
+            self._fallback.clear()
         logger.info("Short-term memory cleared")
 
     def get_statistics(self) -> Dict[str, Any]:
-        """获取统计信息"""
         return {
-            "total_messages": len(self.messages),
+            "total_messages": len(self._fallback),
             "max_turns": self.max_turns,
-            "oldest_message_time": self.messages[0]["timestamp"] if self.messages else None,
-            "newest_message_time": self.messages[-1]["timestamp"] if self.messages else None
+            "backend": "redis" if self._redis else "memory",
         }
