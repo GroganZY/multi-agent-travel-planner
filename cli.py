@@ -262,6 +262,12 @@ class TravelCLI:
             await self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
             return
 
+        if missing:
+            self.console.print(
+                f"\n💡 部分信息暂未确认（{', '.join(missing)}），将按常见默认值规划，您可以随时调整。",
+                style="yellow",
+            )
+
         self._ask_count = 0  # 信息齐全，重置
 
         # 7. 显示调用的智能体与最终结果（原逻辑不变）

@@ -30,6 +30,7 @@
 ### 信息缺失自动追问
 - Orchestration 结束后自动检测 EventCollection 的 missing_info，代码驱动追问决策（每会话最多 2 次）
 - LLM 仅润色追问话术，确保不循环追问
+- 超限后提示用户"将按常见默认值规划"，不再追问，避免死循环
 
 ### 稳定性保障
 - 熔断器（三态 CLOSED/OPEN/HALF_OPEN）+ 指数退避重试 + 健康检查
