@@ -245,7 +245,7 @@ class OrchestrationAgent(AgentBase):
         # 整理结果
         results = []
         for (agent_name, priority, _), exec_result in zip(parallel_coroutines, execution_results):
-            if isinstance(exec_result, Exception):
+            if isinstance(exec_result, BaseException):
                 logger.error(f"Parallel agent execution failed: {agent_name}, error: {exec_result}")
                 result = {
                     "status": "error",
