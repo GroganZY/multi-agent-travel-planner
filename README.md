@@ -69,21 +69,16 @@ python .claude/skills/ask-question/script/init_knowledge_base.py
 python cli.py
 ```
 
-### 可选：启用 PostgreSQL + Redis（生产级存储）
+> 系统默认自动探测 PostgreSQL/Redis——Docker 开着就用，没开自动降级为本地 JSON 文件 + 内存存储，零配置。若想强制关闭 DB 模式，将 `config.py` 中 `DB_CONFIG["enabled"]` 或 `CACHE_CONFIG["enabled"]` 设为 `False`。
+
+### 可选：启用生产级存储
 
 ```bash
-docker compose up -d                           # 启动数据库
-pip install asyncpg redis                       # 安装驱动
-python scripts/migrate_to_db.py                 # 迁移旧 JSON 数据（可选）
-
-# 编辑 config.py：
-#   DB_CONFIG["enabled"] = True
-#   CACHE_CONFIG["enabled"] = True
-
-python cli.py                                   # 自动使用 DB 模式
+docker compose up -d                           # 一键启动 PostgreSQL + Redis
+pip install asyncpg redis                       # 安装数据库驱动
+python scripts/migrate_to_db.py                 # （可选）迁移旧 JSON 数据
+python cli.py                                   # 启动，自动走 DB 模式
 ```
-
-Docker 关闭后系统自动降级回 JSON 文件 + 内存存储，无需修改任何代码。
 
 ---
 

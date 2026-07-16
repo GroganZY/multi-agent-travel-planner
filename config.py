@@ -43,9 +43,10 @@ RESILIENCE_CONFIG = {
 }
 
 # PostgreSQL — Long-term memory persistence
-# Set enabled=True and start `docker compose up -d` to use
+# 默认为 True，启动时自动探测：Docker 开着就用，没开自动降级为本地 JSON 文件
+# 若想强制关闭（即使 Docker 开着也不走 DB），设为 False
 DB_CONFIG = {
-    "enabled": False,       # toggle to True when Docker PostgreSQL is running
+    "enabled": True,
     "host": "localhost",
     "port": 5432,
     "database": "travel_planner",
@@ -56,9 +57,10 @@ DB_CONFIG = {
 }
 
 # Redis — Short-term memory cache + preference/summary cache layer
-# Set enabled=True and start `docker compose up -d` to use
+# 默认为 True，启动时自动探测：Docker 开着就用，没开自动降级为 Python list
+# 若想强制关闭（即使 Docker 开着也不走 Redis），设为 False
 CACHE_CONFIG = {
-    "enabled": False,       # toggle to True when Docker Redis is running
+    "enabled": True,
     "url": "redis://localhost:6379/0",
     "preferences_ttl_sec": 86400,     # 24 hours
     "summary_ttl_sec": 1800,           # 30 minutes
