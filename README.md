@@ -45,6 +45,8 @@
 pip install -r requirements.txt
 ```
 
+> **如果不需要数据库**（仅用 JSON 文件 + 内存存储）：可以跳过 `asyncpg` 和 `redis` 两个可选依赖，也不用启动 Docker。系统会自动探测——没有就降级，不影响功能。
+
 ### 2. 配置 API Key
 
 编辑 `config.py`：
