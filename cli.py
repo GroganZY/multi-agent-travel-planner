@@ -105,9 +105,9 @@ class TravelCLI:
                 },
                 generate_kwargs={
                     "extra_body": {"thinking": {"type": "disabled"}},
+                    "temperature": LLM_CONFIG.get("temperature", 0.7),
+                    "max_tokens": LLM_CONFIG.get("max_tokens", 2000),
                 },
-                temperature=LLM_CONFIG.get("temperature", 0.7),
-                max_tokens=LLM_CONFIG.get("max_tokens", 2000),
             )
 
             # 初始化记忆管理器（传入LLM模型用于总结）
