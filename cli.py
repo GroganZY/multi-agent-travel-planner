@@ -292,9 +292,26 @@ class TravelCLI:
                         text = chunk
                     elif hasattr(chunk, "content"):
                         c = chunk.content
-                        text = c if isinstance(c, str) else str(c)
+                        if isinstance(c, str):
+                            text = c
+                        elif isinstance(c, list):
+                            for item in c:
+                                if isinstance(item, dict) and item.get("type") == "text":
+                                    text = item.get("text", "")
+                                    break
+                        else:
+                            text = str(c)
             elif hasattr(response, "content"):
-                text = str(response.content)
+                c = response.content
+                if isinstance(c, str):
+                    text = c
+                elif isinstance(c, list):
+                    for item in c:
+                        if isinstance(item, dict) and item.get("type") == "text":
+                            text = item.get("text", "")
+                            break
+                else:
+                    text = str(c)
             else:
                 text = str(response)
             return text.strip() if text.strip() else f"请问您的{fields}是？"
