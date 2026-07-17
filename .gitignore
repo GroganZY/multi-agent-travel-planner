@@ -47,3 +47,4 @@ data/preferences/*.json
 # OS
 .DS_Store
 Thumbs.db
+data/memory/
