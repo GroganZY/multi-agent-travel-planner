@@ -180,3 +180,15 @@ OrchestrationAgent (协调调度)
 ├── config.py                     # 全局配置
 └── requirements.txt
 ```
+
+---
+
+## 注意事项
+
+- **API Key**：`config.py` 中 `LLM_CONFIG["api_key"]` 从环境变量 `LLM_API_KEY` 读取，未设置时默认为空字符串。启动前需通过环境变量或直接修改 `config.py` 填入豆包 API Key。`DB_CONFIG["password"]` 为 Docker 容器内 PostgreSQL 的本地密码，不涉及生产密钥。
+- **`data/memory/*.json`**：为本地测试产生的示例记忆数据（用户偏好、聊天记录、行程历史），仅作格式参考。生产环境启用 PostgreSQL 后不再使用 JSON 文件存储。
+- **Embedding 模型**：BGE-small-zh-v1.5 需放置于 `data/models/bge-small-zh-v1.5/`。首次运行 RAG 知识库初始化脚本时会自动下载（需联网），或手动下载后放入该路径。
+
+## 许可证
+
+MIT License
