@@ -23,10 +23,10 @@ _PROVIDER_PRESETS = {
         "extra_body": {"thinking": {"type": "disabled"}},  # 豆包专属：关闭深度思考
     },
     "deepseek": {
-        "model_name": "deepseek-chat",
-        "base_url": "https://api.deepseek.com/v1",
+        "model_name": "deepseek-v4-pro",
+        "base_url": "https://api.deepseek.com",
         "api_key_env": "DEEPSEEK_API_KEY",
-        "extra_body": None,  # DeepSeek 不需要
+        "extra_body": None,
     },
     "zhipu": {
         "model_name": "glm-4-flash",
