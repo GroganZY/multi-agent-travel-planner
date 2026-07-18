@@ -205,16 +205,17 @@ class IntentionAgent(AgentBase):
 **说明：**
 - Priority 1 的智能体都是信息获取，互不依赖，可并行执行提升速度
 - Priority 2 的智能体需要使用 Priority 1 收集的信息
-**强制规则：行程规划必须同时调度 rag_knowledge**
-- 只要 agent_schedule 中包含 itinerary_planning，必须同时包含 rag_knowledge（Priority 1）
-- 原因：行程规划需要目的地的差旅标准（住宿上限、餐饮上限）作为约束
-- 即使用户没有明确询问"差旅标准"或"报销政策"，也必须主动查询
+**rag_knowledge 的调度判断（请根据语义自行判断，不要机械套用）：**
+- 用户意图为出差/商务/拜访/会议 → 建议同时调度 rag_knowledge，获取目的地差旅标准作为约束
+- 用户明确询问差旅标准/报销政策/公司规定 → 必须调度 rag_knowledge
+- 用户意图为旅游/度假/探亲 → 通常不需要 rag_knowledge（没有公司标准约束）
+- 无法判断出差还是旅游时 → 检查用户是否提及"公司""客户""开会""拜访"等词，有则调度
 - 示例：用户说"帮我规划从杭州出差"
   → Priority 1: event_collection + rag_knowledge + preference（并行）
-  → Priority 2: itinerary_planning（拿到行程信息、差旅标准和偏好后再规划）
-- 示例：用户说"我要从天津去北京，喜欢住汉庭"
-  → Priority 1: preference + event_collection + rag_knowledge（并行）
-  → Priority 2: itinerary_planning（使用 Priority 1 的结果）
+  → Priority 2: itinerary_planning
+- 示例：用户说"周末去杭州玩两天"
+  → Priority 1: event_collection（只需行程信息）
+  → Priority 2: itinerary_planning（旅游不需要公司标准）
 
 请开始分析，直接输出JSON：
 """
