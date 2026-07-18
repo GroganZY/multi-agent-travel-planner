@@ -1,0 +1,242 @@
+[
+  {
+    "id": 1,
+    "question": "北京住宿标准是多少",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["500元", "一线城市"],
+    "relevant_section": "三、住宿标准"
+  },
+  {
+    "id": 2,
+    "question": "出差需要提前多久申请",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["3个工作日"],
+    "relevant_section": "一、差旅申请流程"
+  },
+  {
+    "id": 3,
+    "question": "国内航班可以订什么舱位",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["经济舱", "国内航班"],
+    "relevant_section": "二、交通标准"
+  },
+  {
+    "id": 4,
+    "question": "高铁/动车允许订什么座位等级",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["二等座"],
+    "relevant_section": "二、交通标准"
+  },
+  {
+    "id": 5,
+    "question": "超出差旅标准怎么办",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["提前申请", "审批"],
+    "relevant_section": "七、特殊情况处理"
+  },
+  {
+    "id": 6,
+    "question": "广州住宿标准是多少",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["500元", "一线城市"],
+    "relevant_section": "三、住宿标准"
+  },
+  {
+    "id": 7,
+    "question": "出差期间餐费报销标准是什么",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["100元", "午餐", "晚餐"],
+    "relevant_section": "四、餐饮标准"
+  },
+  {
+    "id": 8,
+    "question": "出差结束后多久内要提交报销",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": ["30个自然日", "一周内"],
+    "relevant_section": "一、报销时间要求"
+  },
+  {
+    "id": 9,
+    "question": "报销需要哪些材料",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": ["发票", "差旅申请审批单", "行程单"],
+    "relevant_section": "二、报销材料要求"
+  },
+  {
+    "id": 10,
+    "question": "发票抬头应该写什么",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": ["阿里巴巴", "全称"],
+    "relevant_section": "二、报销材料要求"
+  },
+  {
+    "id": 11,
+    "question": "发票丢了怎么办",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": ["补开", "遗失说明", "辅助证明"],
+    "relevant_section": "七、发票管理"
+  },
+  {
+    "id": 12,
+    "question": "哪些费用明确不予报销",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": ["个人消费", "minibar", "交通违章罚款"],
+    "relevant_section": "四、不予报销的情况"
+  },
+  {
+    "id": 13,
+    "question": "机票应该提前多久预订",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": ["7-14天", "国内机票"],
+    "relevant_section": "一、机票预订"
+  },
+  {
+    "id": 14,
+    "question": "酒店入住和退房时间是什么",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": ["14:00", "12:00"],
+    "relevant_section": "三、酒店预订"
+  },
+  {
+    "id": 15,
+    "question": "如何获取企业协议酒店价格",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": ["阿里商旅平台", "协议酒店"],
+    "relevant_section": "三、酒店预订"
+  },
+  {
+    "id": 16,
+    "question": "出差可以开私家车吗",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["油费", "过路费", "停车费"],
+    "relevant_section": "Q5"
+  },
+  {
+    "id": 17,
+    "question": "机票可以选头等舱或商务舱吗",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["原则上不可以", "1.85米"],
+    "relevant_section": "Q6"
+  },
+  {
+    "id": 18,
+    "question": "出差期间可以携带家属吗",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["不可以", "费用需个人承担"],
+    "relevant_section": "Q16"
+  },
+  {
+    "id": 19,
+    "question": "周末或节假日出差有补贴吗",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["调休"],
+    "relevant_section": "Q21"
+  },
+  {
+    "id": 20,
+    "question": "航班延误了怎么办",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": ["航空公司", "改签", "联系"],
+    "relevant_section": "一、航班相关紧急情况"
+  },
+  {
+    "id": 21,
+    "question": "出差途中生病怎么办",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": ["就医", "保险"],
+    "relevant_section": "突发疾病"
+  },
+  {
+    "id": 22,
+    "question": "行李丢失了怎么处理",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": ["航空公司", "赔偿"],
+    "relevant_section": "行李丢失"
+  },
+  {
+    "id": 23,
+    "question": "阿里商旅平台有哪些功能",
+    "category": "平台指南",
+    "expected_doc": "06_platform_guide.txt",
+    "key_facts": ["差旅申请", "机票预订", "费用报销"],
+    "relevant_section": "二、平台主要功能"
+  },
+  {
+    "id": 24,
+    "question": "北京首都机场怎么去市中心",
+    "category": "城市指南",
+    "expected_doc": "07_city_specific_tips.txt",
+    "key_facts": ["机场快轨", "东直门"],
+    "relevant_section": "一、北京"
+  },
+  {
+    "id": 25,
+    "question": "杭州住宿推荐哪个区域",
+    "category": "城市指南",
+    "expected_doc": "07_city_specific_tips.txt",
+    "key_facts": ["西湖周边", "武林广场"],
+    "relevant_section": "杭州"
+  },
+  {
+    "id": 26,
+    "question": "短途出行应该选什么交通方式更环保",
+    "category": "环保倡议",
+    "expected_doc": "08_environmental_initiatives.txt",
+    "key_facts": ["高铁", "300公里"],
+    "relevant_section": "一、绿色出行"
+  },
+  {
+    "id": 27,
+    "question": "违规报销会有什么后果",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": ["批评教育", "不予报销"],
+    "relevant_section": "八、违规处理"
+  },
+  {
+    "id": 28,
+    "question": "国际出差需要办理哪些手续",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["护照", "签证", "保险"],
+    "relevant_section": "Q19"
+  },
+  {
+    "id": 29,
+    "question": "酒店到店发现房间有问题怎么办",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": ["换房", "投诉"],
+    "relevant_section": "Q10"
+  },
+  {
+    "id": 30,
+    "question": "公司对绿色出差有什么倡议",
+    "category": "环保倡议",
+    "expected_doc": "08_environmental_initiatives.txt",
+    "key_facts": ["低碳", "碳排放", "高铁优先"],
+    "relevant_section": "一、绿色出行"
+  }
+]
