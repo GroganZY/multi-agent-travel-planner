@@ -223,15 +223,15 @@ async def _extract_response(response) -> str:
     if hasattr(response, '__aiter__'):
         async for chunk in response:
             if isinstance(chunk, str):
-                text += chunk
+                text = chunk  # doubao streaming: each chunk is full accumulated text
             elif hasattr(chunk, 'content'):
                 c = chunk.content
                 if isinstance(c, str):
-                    text += c
+                    text = c
                 elif isinstance(c, list):
                     for item in c:
                         if isinstance(item, dict) and item.get('type') == 'text':
-                            text += item.get('text', '')
+                            text = item.get('text', '')  # last text item wins
     elif hasattr(response, 'content'):
         c = response.content
         if isinstance(c, str):
@@ -239,12 +239,12 @@ async def _extract_response(response) -> str:
         elif isinstance(c, list):
             for item in c:
                 if isinstance(item, dict) and item.get('type') == 'text':
-                    text += item.get('text', '')
+                    text = item.get('text', '')
         else:
             text = str(c)
     else:
         text = str(response)
-    return text
+    return text.strip()
 
 
 def _parse_json(text: str) -> dict:
