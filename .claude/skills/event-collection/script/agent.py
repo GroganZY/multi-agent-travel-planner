@@ -93,9 +93,10 @@ class EventCollectionAgent(AgentBase):
 - 所有日期必须输出完整的YYYY-MM-DD格式
 
 【特殊处理】
-- 对于"北京一日游"这类：destination和origin都设为北京
-- 对于"一日游"：duration_days设为1
+- 对于"北京本地出差"这类：destination和origin都设为北京
+- 如果出差天数未说明：duration_days 设为 1
 - 如果用户没说出发地，但有家庭住址信息，可推断出发地为家庭住址
+- trip_purpose 默认为"出差"，除非用户明确说明是旅游/探亲等
 
 【输出格式】(严格JSON)
 {{
