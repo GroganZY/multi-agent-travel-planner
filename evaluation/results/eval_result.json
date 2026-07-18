@@ -1,1081 +1,1069 @@
 {
-  "summary": {
-    "total_questions": 30,
-    "avg_context_precision": 0.7333,
-    "avg_context_recall": 0.8944,
-    "avg_mrr": 0.9,
-    "category_hit_rate": 0.9,
+  "retrieval": {
+    "total": 30,
+    "context_precision": 0.8,
+    "context_recall": 0.8944,
+    "category_hit": 1.0,
+    "mrr": 0.9444,
     "by_category": {
       "FAQ": {
-        "questions": 6,
-        "avg_precision": 0.7778,
-        "avg_recall": 0.9167,
-        "avg_mrr": 0.8889
+        "count": 6,
+        "precision": 0.7778,
+        "recall": 0.9167,
+        "mrr": 0.8889
       },
       "城市指南": {
-        "questions": 2,
-        "avg_precision": 0.8333,
-        "avg_recall": 1.0,
-        "avg_mrr": 1.0
+        "count": 2,
+        "precision": 0.8333,
+        "recall": 1.0,
+        "mrr": 1.0
       },
       "差旅规定": {
-        "questions": 8,
-        "avg_precision": 0.625,
-        "avg_recall": 0.875,
-        "avg_mrr": 0.875
+        "count": 8,
+        "precision": 0.75,
+        "recall": 0.875,
+        "mrr": 0.875
       },
       "平台指南": {
-        "questions": 1,
-        "avg_precision": 0.6667,
-        "avg_recall": 1.0,
-        "avg_mrr": 1.0
+        "count": 1,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "mrr": 1.0
       },
       "报销规定": {
-        "questions": 5,
-        "avg_precision": 0.6,
-        "avg_recall": 0.6667,
-        "avg_mrr": 0.7333
+        "count": 5,
+        "precision": 0.8,
+        "recall": 0.6667,
+        "mrr": 1.0
       },
       "环保倡议": {
-        "questions": 2,
-        "avg_precision": 1.0,
-        "avg_recall": 1.0,
-        "avg_mrr": 1.0
+        "count": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0
       },
       "紧急处理": {
-        "questions": 3,
-        "avg_precision": 1.0,
-        "avg_recall": 1.0,
-        "avg_mrr": 1.0
+        "count": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "mrr": 1.0
       },
       "预订指南": {
-        "questions": 3,
-        "avg_precision": 0.6667,
-        "avg_recall": 1.0,
-        "avg_mrr": 1.0
+        "count": 3,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "mrr": 1.0
       }
-    }
+    },
+    "avg_faithfulness": 0.645,
+    "avg_answer_relevancy": 0.74
   },
   "details": [
     {
       "id": 1,
       "question": "北京住宿标准是多少",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.4153,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.4573,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.5016,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
-      "precision": 0.33,
+      "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 2,
       "question": "出差需要提前多久申请",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.2687,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.3118,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.365,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 1
+      "facts_found": 1,
+      "facts_total": 1
     },
     {
       "id": 3,
       "question": "国内航班可以订什么舱位",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.3884,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4384,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.4401,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.33,
       "recall": 0.5,
       "mrr": 0.5,
-      "key_facts_found": 1,
-      "key_facts_total": 2
+      "facts_found": 1,
+      "facts_total": 2
     },
     {
       "id": 4,
       "question": "高铁/动车允许订什么座位等级",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.4885,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.4907,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.4973,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 1
+      "facts_found": 1,
+      "facts_total": 1
     },
     {
       "id": 5,
       "question": "超出差旅标准怎么办",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.313,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3183,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.341,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
-      "precision": 0.67,
+      "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 6,
       "question": "广州住宿标准是多少",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.4038,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.4734,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.5075,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.33,
       "recall": 1.0,
       "mrr": 0.5,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 7,
       "question": "出差期间餐费报销标准是什么",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.2964,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3026,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3075,
-          "matched": false,
-          "fact_hits": 3
+          "relevant": true
         }
       ],
-      "precision": 0.67,
+      "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     },
     {
       "id": 8,
       "question": "出差结束后多久内要提交报销",
       "category": "报销规定",
-      "expected_doc": "02_reimbursement_policy.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "02_reimbursement_policy.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3137,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.3347,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.3411,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
-      "precision": 0.33,
+      "precision": 0.67,
       "recall": 1.0,
-      "mrr": 0.333,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "mrr": 1.0,
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 9,
       "question": "报销需要哪些材料",
       "category": "报销规定",
-      "expected_doc": "02_reimbursement_policy.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "02_reimbursement_policy.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.318,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3549,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.3563,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 0.33,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 3
+      "facts_found": 1,
+      "facts_total": 3
     },
     {
       "id": 10,
       "question": "发票抬头应该写什么",
       "category": "报销规定",
-      "expected_doc": "02_reimbursement_policy.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "02_reimbursement_policy.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.4621,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.5025,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.5103,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 11,
       "question": "发票丢了怎么办",
       "category": "报销规定",
-      "expected_doc": "02_reimbursement_policy.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "02_reimbursement_policy.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.3635,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.3752,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.4013,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.67,
       "recall": 0.67,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 3
+      "facts_found": 2,
+      "facts_total": 3
     },
     {
       "id": 12,
       "question": "哪些费用明确不予报销",
       "category": "报销规定",
-      "expected_doc": "02_reimbursement_policy.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "02_reimbursement_policy.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3552,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3654,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "02_reimbursement_policy.txt",
           "category": "报销规定",
           "distance": 0.3716,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
-      "precision": 0.33,
+      "precision": 1.0,
       "recall": 0.33,
-      "mrr": 0.333,
-      "key_facts_found": 1,
-      "key_facts_total": 3
+      "mrr": 1.0,
+      "facts_found": 1,
+      "facts_total": 3
     },
     {
       "id": 13,
       "question": "机票应该提前多久预订",
       "category": "预订指南",
-      "expected_doc": "03_booking_guide.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "03_booking_guide.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.2942,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.3116,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.3785,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 14,
       "question": "酒店入住和退房时间是什么",
       "category": "预订指南",
-      "expected_doc": "03_booking_guide.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "03_booking_guide.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.3921,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.455,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4867,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.33,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 15,
       "question": "如何获取企业协议酒店价格",
       "category": "预订指南",
-      "expected_doc": "03_booking_guide.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "03_booking_guide.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3665,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3804,
-          "matched": false,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.4127,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 16,
       "question": "出差可以开私家车吗",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4604,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4642,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4935,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     },
     {
       "id": 17,
       "question": "机票可以选头等舱或商务舱吗",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "03_booking_guide.txt",
           "category": "预订指南",
           "distance": 0.3705,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.39,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3981,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 0.33,
       "recall": 1.0,
       "mrr": 0.333,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 18,
       "question": "出差期间可以携带家属吗",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4108,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.455,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4572,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 0.5,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 2
+      "facts_found": 1,
+      "facts_total": 2
     },
     {
       "id": 19,
       "question": "周末或节假日出差有补贴吗",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4532,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.4624,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4803,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 1
+      "facts_found": 1,
+      "facts_total": 1
     },
     {
       "id": 20,
       "question": "航班延误了怎么办",
       "category": "紧急处理",
-      "expected_doc": "05_emergency_procedures.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "05_emergency_procedures.txt"
+      ],
+      "retrieved": [
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.2885,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.3118,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.3943,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     },
     {
       "id": 21,
       "question": "出差途中生病怎么办",
       "category": "紧急处理",
-      "expected_doc": "05_emergency_procedures.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "05_emergency_procedures.txt"
+      ],
+      "retrieved": [
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4192,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4271,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4432,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 22,
       "question": "行李丢失了怎么处理",
       "category": "紧急处理",
-      "expected_doc": "05_emergency_procedures.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "05_emergency_procedures.txt"
+      ],
+      "retrieved": [
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4067,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.4486,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4794,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 23,
       "question": "阿里商旅平台有哪些功能",
       "category": "平台指南",
-      "expected_doc": "06_platform_guide.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "06_platform_guide.txt"
+      ],
+      "retrieved": [
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.3897,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4482,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "06_platform_guide.txt",
           "category": "平台指南",
           "distance": 0.4486,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     },
     {
       "id": 24,
       "question": "北京首都机场怎么去市中心",
       "category": "城市指南",
-      "expected_doc": "07_city_specific_tips.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "07_city_specific_tips.txt"
+      ],
+      "retrieved": [
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.4446,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.523,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.5396,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 25,
       "question": "杭州住宿推荐哪个区域",
       "category": "城市指南",
-      "expected_doc": "07_city_specific_tips.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "07_city_specific_tips.txt"
+      ],
+      "retrieved": [
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.4025,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.4912,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "07_city_specific_tips.txt",
           "category": "城市指南",
           "distance": 0.5422,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 26,
       "question": "短途出行应该选什么交通方式更环保",
       "category": "环保倡议",
-      "expected_doc": "08_environmental_initiatives.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "08_environmental_initiatives.txt"
+      ],
+      "retrieved": [
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.3166,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.3571,
-          "matched": true,
-          "fact_hits": 0
+          "relevant": true
         },
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.3903,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 27,
       "question": "违规报销会有什么后果",
       "category": "差旅规定",
-      "expected_doc": "01_travel_standards.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "01_travel_standards.txt",
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3921,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3933,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.4046,
-          "matched": false,
-          "fact_hits": 1
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 0.5,
       "mrr": 1.0,
-      "key_facts_found": 1,
-      "key_facts_total": 2
+      "facts_found": 1,
+      "facts_total": 2
     },
     {
       "id": 28,
       "question": "国际出差需要办理哪些手续",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.2973,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3381,
-          "matched": true,
-          "fact_hits": 1
+          "relevant": true
         },
         {
           "doc": "01_travel_standards.txt",
           "category": "差旅规定",
           "distance": 0.3384,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     },
     {
       "id": 29,
       "question": "酒店到店发现房间有问题怎么办",
       "category": "FAQ",
-      "expected_doc": "04_faq.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "04_faq.txt"
+      ],
+      "retrieved": [
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.3305,
-          "matched": false,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "05_emergency_procedures.txt",
           "category": "应急指南",
           "distance": 0.339,
-          "matched": false,
-          "fact_hits": 0
+          "relevant": false
         },
         {
           "doc": "04_faq.txt",
           "category": "FAQ",
           "distance": 0.3711,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 0.67,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 2,
-      "key_facts_total": 2
+      "facts_found": 2,
+      "facts_total": 2
     },
     {
       "id": 30,
       "question": "公司对绿色出差有什么倡议",
       "category": "环保倡议",
-      "expected_doc": "08_environmental_initiatives.txt",
-      "retrieved_docs": [
+      "acceptable_docs": [
+        "08_environmental_initiatives.txt"
+      ],
+      "retrieved": [
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.3708,
-          "matched": true,
-          "fact_hits": 3
+          "relevant": true
         },
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.405,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         },
         {
           "doc": "08_environmental_initiatives.txt",
           "category": "环保倡议",
           "distance": 0.424,
-          "matched": true,
-          "fact_hits": 2
+          "relevant": true
         }
       ],
       "precision": 1.0,
       "recall": 1.0,
       "mrr": 1.0,
-      "key_facts_found": 3,
-      "key_facts_total": 3
+      "facts_found": 3,
+      "facts_total": 3
     }
   ]
 }
