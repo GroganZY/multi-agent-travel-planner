@@ -12,7 +12,7 @@ except ImportError:
 # LLM Configuration
 LLM_CONFIG = {
     "api_key": os.getenv("LLM_API_KEY", ""),
-    "model_name": "doubao-seed-2-0-lite-260428",
+    "model_name": "doubao-seed-2-0-mini-260428",
     "base_url": "https://ark.cn-beijing.volces.com/api/v3",
     "temperature": 0.7,
     "max_tokens": 8192,
