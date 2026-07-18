@@ -96,6 +96,14 @@ class TravelCLI:
 
             # 初始化模型
             timeout_sec = SYSTEM_CONFIG.get("timeout", 60)
+            gen_kwargs = {
+                "temperature": LLM_CONFIG.get("temperature", 0.7),
+                "max_tokens": LLM_CONFIG.get("max_tokens", 2000),
+            }
+            extra = LLM_CONFIG.get("extra_body")
+            if extra is not None:
+                gen_kwargs["extra_body"] = extra
+
             self.model = OpenAIChatModel(
                 model_name=LLM_CONFIG["model_name"],
                 api_key=LLM_CONFIG["api_key"],
@@ -103,11 +111,7 @@ class TravelCLI:
                     "base_url": LLM_CONFIG["base_url"],
                     "timeout": float(timeout_sec),
                 },
-                generate_kwargs={
-                    "extra_body": {"thinking": {"type": "disabled"}},
-                    "temperature": LLM_CONFIG.get("temperature", 0.7),
-                    "max_tokens": LLM_CONFIG.get("max_tokens", 2000),
-                },
+                generate_kwargs=gen_kwargs,
             )
 
             # 初始化记忆管理器（传入LLM模型用于总结）

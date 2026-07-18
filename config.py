@@ -9,13 +9,43 @@ try:
 except ImportError:
     pass
 
-# LLM Configuration
+# LLM 提供商配置
+# 切换提供商：修改 PROVIDER 的值为 'deepseek' / 'doubao' / 'zhipu' 等
+# 对应 API Key 在 .env 中配置
+
+_PROVIDER = os.getenv("LLM_PROVIDER", "deepseek")
+
+_PROVIDER_PRESETS = {
+    "doubao": {
+        "model_name": "doubao-seed-2-0-lite-260428",
+        "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+        "api_key_env": "LLM_API_KEY",
+        "extra_body": {"thinking": {"type": "disabled"}},  # 豆包专属：关闭深度思考
+    },
+    "deepseek": {
+        "model_name": "deepseek-chat",
+        "base_url": "https://api.deepseek.com/v1",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "extra_body": None,  # DeepSeek 不需要
+    },
+    "zhipu": {
+        "model_name": "glm-4-flash",
+        "base_url": "https://open.bigmodel.cn/api/paas/v4",
+        "api_key_env": "ZHIPU_API_KEY",
+        "extra_body": None,
+    },
+}
+
+_preset = _PROVIDER_PRESETS.get(_PROVIDER, _PROVIDER_PRESETS["doubao"])
+
 LLM_CONFIG = {
-    "api_key": os.getenv("LLM_API_KEY", ""),
-    "model_name": "doubao-seed-2-0-mini-260428",
-    "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+    "provider": _PROVIDER,
+    "api_key": os.getenv(_preset["api_key_env"], ""),
+    "model_name": _preset["model_name"],
+    "base_url": _preset["base_url"],
     "temperature": 0.7,
     "max_tokens": 8192,
+    "extra_body": _preset.get("extra_body"),
 }
 
 # System Configuration
