@@ -143,7 +143,7 @@ class MemoryManager:
 
     async def _set_cached_summary(self, cache_key: str, summary: str) -> None:
         if await self._redis_ok():
-            await self._redis.setex(cache_key, SUMMARY_CACHE_TTL_SEC, summary)
+            await self._redis.set(cache_key, summary, ex=SUMMARY_CACHE_TTL_SEC)
 
     # ------------------------------------------------------------------
     # Short-term ops
