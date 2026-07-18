@@ -75,7 +75,8 @@ def init_llm_model():
         model_name=LLM_CONFIG["model_name"],
         api_key=LLM_CONFIG["api_key"],
         client_kwargs={"base_url": LLM_CONFIG["base_url"], "timeout": float(SYSTEM_CONFIG.get("timeout", 60))},
-        temperature=0.1,  # 评估用，越低越稳定
+        generate_kwargs={"extra_body": {"thinking": {"type": "disabled"}}},
+        temperature=0.1,
         max_tokens=LLM_CONFIG.get("max_tokens", 2000),
     )
 
@@ -210,7 +211,7 @@ async def evaluate_relevancy(model, item: Dict, answer: str) -> float:
     )
     try:
         resp = await model([{"role": "user", "content": prompt}])
-        text = await _extract_response(resp).strip()
+        text = (await _extract_response(resp)).strip()
         score = float(text)
         return max(0.0, min(1.0, score))
     except Exception:
@@ -222,12 +223,25 @@ async def _extract_response(response) -> str:
     if hasattr(response, '__aiter__'):
         async for chunk in response:
             if isinstance(chunk, str):
-                text = chunk
+                text += chunk
             elif hasattr(chunk, 'content'):
                 c = chunk.content
-                text = c if isinstance(c, str) else str(c)
+                if isinstance(c, str):
+                    text += c
+                elif isinstance(c, list):
+                    for item in c:
+                        if isinstance(item, dict) and item.get('type') == 'text':
+                            text += item.get('text', '')
     elif hasattr(response, 'content'):
-        text = str(response.content)
+        c = response.content
+        if isinstance(c, str):
+            text = c
+        elif isinstance(c, list):
+            for item in c:
+                if isinstance(item, dict) and item.get('type') == 'text':
+                    text += item.get('text', '')
+        else:
+            text = str(c)
     else:
         text = str(response)
     return text
