@@ -20,13 +20,13 @@ _PROVIDER_PRESETS = {
         "model_name": "doubao-seed-2-0-lite-260428",
         "base_url": "https://ark.cn-beijing.volces.com/api/v3",
         "api_key_env": "LLM_API_KEY",
-        "extra_body": {"thinking": {"type": "disabled"}},  # 豆包专属：关闭深度思考
+        "extra_body": {"thinking": {"type": "disabled"}},
     },
     "deepseek": {
         "model_name": "deepseek-v4-pro",
         "base_url": "https://api.deepseek.com",
         "api_key_env": "DEEPSEEK_API_KEY",
-        "extra_body": None,
+        "extra_body": {"thinking": {"type": "disabled"}},
     },
     "zhipu": {
         "model_name": "glm-4-flash",
