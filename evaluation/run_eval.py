@@ -279,6 +279,31 @@ async def evaluate_relevancy(model, item: Dict, answer: str) -> float:
         return -1.0
 
 
+async def evaluate_correctness(model, item: Dict, answer: str) -> float:
+    """对比生成的答案和参考答案，评估事实正确性。0=全错，1=全对。"""
+    prompt = (
+        "你的任务是判断「生成答案」和「参考答案」在事实上是否一致。\n"
+        "只关注事实准确性，不关注措辞差异。\n\n"
+        f"【问题】\n{item['question']}\n\n"
+        f"【参考答案】\n{item.get('reference', '')}\n\n"
+        f"【生成答案】\n{answer}\n\n"
+        "请给生成答案的事实正确性打分（0.0-1.0）：\n"
+        "- 1.0: 完全正确，关键事实和数字全部一致\n"
+        "- 0.7: 大部分正确，有个别细节偏差或遗漏\n"
+        "- 0.5: 部分正确，遗漏或错误了一半左右的信息\n"
+        "- 0.3: 少量正确，大部分信息不准确或遗漏\n"
+        "- 0.0: 完全错误或答非所问\n"
+        "只输出一个数字，如 0.85"
+    )
+    try:
+        resp = await model([{"role": "user", "content": prompt}])
+        text = (await _extract_response(resp)).strip()
+        score = float(text)
+        return max(0.0, min(1.0, score))
+    except Exception:
+        return -1.0
+
+
 async def generate_answer(model, question: str, docs: List[Dict]) -> str:
     context = "\n\n".join(
         f"【知识片段{i+1}】\n{d['content']}" for i, d in enumerate(docs)
@@ -310,9 +335,10 @@ async def main():
     agent = init_rag_agent()
     print("  Ready")
 
-    api_key = os.getenv("LLM_API_KEY", "")
+    from config import LLM_CONFIG
+    api_key = LLM_CONFIG["api_key"]
     if not api_key:
-        print("\n⚠ LLM_API_KEY 未设置，评估需要 LLM 无法运行")
+        print(f"\n⚠ API Key 未设置（provider={LLM_CONFIG.get('provider','?')}），评估需要 LLM 无法运行")
         agent.close()
         return
 
@@ -332,11 +358,11 @@ async def main():
 
     # ── Step 2: LLM 生成 + Faithfulness + Relevancy ────────────
     print("\n" + "=" * 60)
-    print("Step 2: Faithfulness + Answer Relevancy（LLM-as-judge）")
+    print("Step 2: Faithfulness + Answer Relevancy + Answer Correctness（LLM-as-judge）")
     print("=" * 60)
     t0 = time.time()
 
-    faith_scores, relev_scores = [], []
+    faith_scores, relev_scores, correct_scores = [], [], []
     for idx, item in enumerate(gt[:10]):
         if idx > 0:
             await asyncio.sleep(API_DELAY_SEC)
@@ -345,24 +371,29 @@ async def main():
         faith = await evaluate_faithfulness(model, item, docs, answer)
         await asyncio.sleep(API_DELAY_SEC)
         relev = await evaluate_relevancy(model, item, answer)
+        await asyncio.sleep(API_DELAY_SEC)
+        correct = await evaluate_correctness(model, item, answer)
 
         faith_scores.append(faith if faith >= 0 else None)
         relev_scores.append(relev if relev >= 0 else None)
+        correct_scores.append(correct if correct >= 0 else None)
         print(f"  [{item['id']:2d}] {item['question'][:20]:<20} "
-              f"F={faith:.2f} R={relev:.2f}")
+              f"F={faith:.2f} R={relev:.2f} C={correct:.2f}")
         await asyncio.sleep(API_DELAY_SEC)
 
     valid_f = [f for f in faith_scores if f is not None]
     valid_r = [r for r in relev_scores if r is not None]
+    valid_c = [c for c in correct_scores if c is not None]
 
-    print(f"\n  Avg Faithfulness:     {sum(valid_f)/len(valid_f):.2%}" if valid_f else "  N/A")
-    print(f"  Avg Answer Relevancy: {sum(valid_r)/len(valid_r):.2%}" if valid_r else "  N/A")
+    print(f"\n  Avg Faithfulness:       {sum(valid_f)/len(valid_f):.2%}" if valid_f else "  N/A")
+    print(f"  Avg Answer Relevancy:   {sum(valid_r)/len(valid_r):.2%}" if valid_r else "  N/A")
+    print(f"  Avg Answer Correctness: {sum(valid_c)/len(valid_c):.2%}" if valid_c else "  N/A")
     print(f"  Done ({time.time()-t0:.1f}s)")
 
     retrieval["summary"]["avg_faithfulness"] = round(sum(valid_f)/len(valid_f), 4) if valid_f else None
     retrieval["summary"]["avg_answer_relevancy"] = round(sum(valid_r)/len(valid_r), 4) if valid_r else None
+    retrieval["summary"]["avg_answer_correctness"] = round(sum(valid_c)/len(valid_c), 4) if valid_c else None
 
-    # 保存
     report = {"retrieval": retrieval["summary"], "details": retrieval["details"]}
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:

@@ -96,9 +96,10 @@ async def main():
     with open(gt_path, encoding="utf-8") as f:
         gt = json.load(f)
 
-    api_key = os.getenv("LLM_API_KEY", "")
+    from config import LLM_CONFIG
+    api_key = LLM_CONFIG["api_key"]
     if not api_key:
-        print("LLM_API_KEY 未设置"); return
+        print(f"API Key 未设置（provider={LLM_CONFIG.get('provider','?')}）"); return
 
     model = init_llm()
     agent = init_rag_agent()
@@ -147,14 +148,14 @@ async def main():
 
     # ── RAGAs 评估（四个指标，一次调用）──────────────────────
     print("\n" + "=" * 60)
-    print("RAGAs 评估（context_precision, context_recall, faithfulness, answer_relevancy）")
+    print("RAGAs 评估（context_precision, context_recall, faithfulness, answer_relevancy, answer_correctness）")
     print("=" * 60)
 
     try:
         import ragas
         from ragas.metrics import (
             context_precision, context_recall,
-            faithfulness, answer_relevancy,
+            faithfulness, answer_relevancy, answer_correctness,
         )
         import datasets
 
@@ -172,6 +173,7 @@ async def main():
                 context_recall,
                 faithfulness,
                 answer_relevancy,
+                answer_correctness,
             ],
         )
         print(result)

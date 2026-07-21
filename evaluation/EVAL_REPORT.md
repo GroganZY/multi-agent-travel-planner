@@ -31,6 +31,7 @@
 | MRR | 第一个相关 chunk 的倒数排名均值 | 由 Precision 结果推导 |
 | Faithfulness | LLM 答案每句话在检索文档中是否能找到依据 | LLM-as-judge |
 | Answer Relevancy | LLM 答案是否扣题 | LLM-as-judge |
+| Answer Correctness | LLM 答案与参考答案在事实上是否一致 | LLM-as-judge |
 
 ---
 
