@@ -6,31 +6,16 @@
 
 | | `run_eval.py` | `run_eval_ragas.py` |
 |---|---|---|
-| 检索层 | 手写 LLM-as-judge | **子类化 RAGAs**：自定义 `KeyFactsContextPrecisionRecall` 类，适配 key_facts 格式 + batch prompt 合并 |
-| 生成层 | 手写 LLM-as-judge | **RAGAs 原版**：`faithfulness` + `answer_relevancy`，无需修改 |
+| 检索层 | 手写 LLM-as-judge batch prompt | **RAGAs 原版** `context_precision` / `context_recall` |
+| 生成层 | 手写 LLM-as-judge | **RAGAs 原版** `faithfulness` / `answer_relevancy` |
 | 依赖 | 无额外依赖 | ragas, datasets |
-| 设计模式 | 独立实现 | 继承 + 重写 |
+| 区别 | 检索层 Precision+Recall 合并为一次 LLM 调用，省 Token | 四个指标全部调用 RAGAs 库，和业界标准完全对齐 |
 
-### 子类化的设计思路
+### 为什么 run_eval.py 保留了手写版
 
-```
-RAGAs 原版 ContextPrecision / ContextRecall
-  ├── 输入：question + contexts + reference（完整答案文本）
-  └── 不符合：本项目测试集使用 key_facts 格式
+唯一的工程理由：**检索层的 batch prompt**。RAGAs 的 `context_precision` 和 `context_recall` 是两次独立的 LLM 调用，30 题就是 60 次。手写版将它们合并成一次调用（同一个 prompt 同时评估 chunk 相关性和事实覆盖），30 题只需 30 次。在免费 API 限额下这个差别有意义。
 
-KeyFactsContextPrecisionRecall（自定义子类）
-  ├── 继承：RAGAs 的指标定义和 LLM-as-judge 方法论
-  ├── 重写：输入从 reference 改为 key_facts + question
-  ├── 优化：Precision + Recall 合并为一次 LLM 调用
-  │        （RAGAs 原版分开两次调用，30 题多 30 次）
-  └── 输出格式：与 RAGAs 原版对齐
-```
-
-### 为什么没有全部删掉用 RAGAs
-
-检索层：RAGAs 的 `context_precision` / `context_recall` 需要完整参考答案文本，本项目测试集使用 key_facts 短词格式，直接使用不兼容。通过子类化保留了 RAGAs 的方法论，只替换了输入适配层和 prompt 批量化。
-
-生成层：直接使用 RAGAs 原版 `faithfulness` 和 `answer_relevancy`，这两个指标仅需 `question + answer + contexts`，完全兼容。
+方法论上没有优劣——两个版本用同一个 LLM 判断同样的内容，结果应该一致。
 
 ---
 
