@@ -22,3 +22,7 @@ asyncpg==0.30.0
 
 # Redis 异步客户端
 redis[hiredis]==5.2.1
+
+# RAG 评估框架（可选，使用 run_eval_ragas.py 时需安装）
+# ragas>=0.2.0
+# datasets>=2.0.0

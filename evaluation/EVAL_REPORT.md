@@ -2,23 +2,21 @@
 
 ## 评估方法
 
-采用 **LLM-as-judge** 方案，指标定义参考 RAGAs 论文，检索层和生成层均使用 doubao-seed-2.0-mini 进行语义判断，不依赖规则匹配（子串匹配、文档名匹配）。
+### 两个版本
 
-### 为什么用 LLM 判断而不是规则匹配
+| | `run_eval.py` | `run_eval_ragas.py` |
+|---|---|---|
+| 检索层指标 | 手写，LLM-as-judge batch prompt | 同上（继承 run_eval） |
+| 生成层指标 | 手写，LLM-as-judge | **RAGAs 库**（`pip install ragas`） |
+| 依赖 | 无额外依赖 | ragas, datasets |
+| 优势 | 每道题 Precision+Recall 合并为一次 LLM 调用，省 Token | 生成层指标有社区维护、版本迭代 |
+| 适用场景 | 免费 API 限额、需要每道题详细 debug 信息 | 有充足额度、需要和业界标准对齐 |
 
-- 子串匹配"500元"会误判——一份写"酒店价格从300到500元不等"的文档也能命中，但这个 chunk 和"住宿标准"无关
-- 文档名匹配太粗糙——同一个 chunk 可能部分内容相关、部分无关
-- 规则无法处理语义等价（"一线城市"和"北上广深"指同一件事，但子串匹配会漏掉）
+### 为什么没有全部换成 RAGAs
 
-LLM 逐条语义判断能识别这些情况，**和 RAGAs 的 Context Precision / Context Recall 指标同口径**。
+RAGAs 的 `context_precision` 和 `context_recall` 需要完整的 ground truth 答案文本（如"北京一线城市住宿标准不超过500元/晚"），而本项目的测试集使用 `key_facts` 格式（如 `["500元", "一线城市"]`），不兼容。生成层的 `faithfulness` 和 `answer_relevancy` 可以直接用 RAGAs——只需 `question` + `answer` + `contexts`，不需要 ground truth 答案。
 
-### 检索层：批量评估 prompt
-
-对每道题发一次 LLM 调用，同时判断该题的 Context Precision（3 个 chunk 各自是否相关）和 Context Recall（每个关键事实是否被覆盖）。30 题共 30 次 LLM 调用，每题间隔 15 秒适配免费 API 限额。
-
-### 生成层：LLM-as-judge
-
-Faithfulness：LLM 逐句判断生成的答案是否能在检索文档里找到依据。Answer Relevancy：LLM 对答案扣题程度打分 0-1。
+检索层保留手写版还有一个工程上的理由：**每道题的 prompt 同时评估 Precision 和 Recall，一次 LLM 调用完成两个指标**——RAGAs 是分开两次调用，30 题多 30 次调用。
 
 ---
 
