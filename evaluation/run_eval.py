@@ -151,6 +151,20 @@ async def main():
     print("=" * 60)
 
     try:
+        # ragas 依赖 langchain_community.chat_models.vertexai.ChatVertexAI，
+        # 该模块在较新版本的 langchain-community 中已移除。
+        # 此处 mock 该模块以兼容 ragas 0.2-0.4 版本的导入。
+        import sys as _sys, types as _types
+        _stub = _types.ModuleType('langchain_community.chat_models.vertexai')
+        _stub.ChatVertexAI = type('ChatVertexAI', (), {})
+        _sys.modules.setdefault('langchain_community.chat_models', _types.ModuleType('langchain_community.chat_models'))
+        _sys.modules['langchain_community.chat_models.vertexai'] = _stub
+
+        # RAGAs 内部使用 OpenAI client。用 DeepSeek 的 endpoint 和 model 覆盖默认值。
+        from config import LLM_CONFIG as _llm_cfg
+        os.environ["OPENAI_API_KEY"] = _llm_cfg["api_key"]
+        os.environ["OPENAI_BASE_URL"] = _llm_cfg["base_url"]
+
         import ragas
         from ragas.metrics import (
             context_precision, context_recall,
@@ -164,6 +178,18 @@ async def main():
             "contexts": contexts_list,
             "ground_truth": references,
         })
+
+        # RAGAs 0.2.x 内部硬编码了 gpt-4o-mini 作为默认模型。
+        # monkey-patch langchain_openai.ChatOpenAI 将 model 参数默认值覆盖为 DeepSeek 模型。
+        import langchain_openai
+        _orig_init = langchain_openai.ChatOpenAI.__init__
+        def _patched_init(self, *args, **kwargs):
+            if 'model' not in kwargs or kwargs['model'] == 'gpt-4o-mini':
+                kwargs['model'] = _llm_cfg['model_name']
+            if 'temperature' not in kwargs:
+                kwargs['temperature'] = 0.1
+            _orig_init(self, *args, **kwargs)
+        langchain_openai.ChatOpenAI.__init__ = _patched_init
 
         result = ragas.evaluate(
             ds,
@@ -181,7 +207,6 @@ async def main():
         print("请先安装: pip install ragas datasets")
     except Exception as e:
         print(f"评估失败: {e}")
-
     agent.close()
 
 

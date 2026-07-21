@@ -23,7 +23,7 @@ _PROVIDER_PRESETS = {
         "extra_body": {"thinking": {"type": "disabled"}},
     },
     "deepseek": {
-        "model_name": "deepseek-v4-pro[1M]",
+        "model_name": "deepseek-v4-pro",
         "base_url": "https://api.deepseek.com",
         "api_key_env": "DEEPSEEK_API_KEY",
         "extra_body": {"thinking": {"type": "disabled"}},
