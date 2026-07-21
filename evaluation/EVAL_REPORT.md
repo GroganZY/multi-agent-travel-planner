@@ -6,16 +6,12 @@
 
 | | `run_eval.py` | `run_eval_ragas.py` |
 |---|---|---|
-| 检索层 | 手写 LLM-as-judge batch prompt | **RAGAs 原版** `context_precision` / `context_recall` |
-| 生成层 | 手写 LLM-as-judge | **RAGAs 原版** `faithfulness` / `answer_relevancy` |
-| 依赖 | 无额外依赖 | ragas, datasets |
-| 区别 | 检索层 Precision+Recall 合并为一次 LLM 调用，省 Token | 四个指标全部调用 RAGAs 库，和业界标准完全对齐 |
+| 检索层 | 独立实现 `context_precision` / `context_recall`，全程 LLM-as-judge | RAGAs 原版 |
+| 生成层 | 独立实现 `faithfulness` / `answer_relevancy`，全程 LLM-as-judge | RAGAs 原版 |
+| 依赖 | 无额外依赖，仅需项目內已有的 LLM 模型 | ragas, datasets |
+| 关系 | 方法论对齐 RAGAs，纯 Python 实现 | 调用 RAGAs 库，一行 evaluate() |
 
-### 为什么 run_eval.py 保留了手写版
-
-唯一的工程理由：**检索层的 batch prompt**。RAGAs 的 `context_precision` 和 `context_recall` 是两次独立的 LLM 调用，30 题就是 60 次。手写版将它们合并成一次调用（同一个 prompt 同时评估 chunk 相关性和事实覆盖），30 题只需 30 次。在免费 API 限额下这个差别有意义。
-
-方法论上没有优劣——两个版本用同一个 LLM 判断同样的内容，结果应该一致。
+两个版本指标定义完全一致，只是实现路径不同。`run_eval.py` 不依赖额外库，`run_eval_ragas.py` 社区维护更完善。跑任意一个即可。
 
 ---
 

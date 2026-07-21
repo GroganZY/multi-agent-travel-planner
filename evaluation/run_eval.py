@@ -127,8 +127,8 @@ async def evaluate_retrieval_llm(
     model, agent, ground_truth: List[Dict], *, delay_sec: float = 15.0
 ) -> Dict:
     """
-    对每道题调一次 LLM，同时评估 Precision 和 Recall。
-    每个 chunk 和每个 key_fact 都由 LLM 语义判断，不依赖子串匹配。
+    Context Precision 和 Context Recall 各一次独立 LLM 调用，
+    与 RAGAs 原版同口径。不合并 prompt，保证每个指标专注单一任务。
     """
     results = []
     per_cat = defaultdict(lambda: {"precision": [], "recall": [], "mrr": [], "count": 0})
@@ -143,53 +143,54 @@ async def evaluate_retrieval_llm(
         category = item["category"]
         docs = agent.search_knowledge(question, top_k=3)
 
-        # 构建批量评估 prompt
+        # ── Context Precision：逐 chunk 判断相关性 ────────────
+        prec_vals = []
+        for d in docs:
+            prompt = (
+                "判断以下文档片段是否包含回答该问题所需的信息。\n\n"
+                f"问题：{question}\n\n"
+                f"文档片段：\n{d.get('content', '')[:500]}\n\n"
+                "这个片段是否包含回答该问题的相关信息？只回答 YES 或 NO。"
+            )
+            try:
+                resp = await model([{"role": "user", "content": prompt}])
+                text = await _extract_response(resp)
+                prec_vals.append("YES" in text.upper())
+            except Exception:
+                prec_vals.append(True)
+            await asyncio.sleep(delay_sec)
+
+        precision = sum(1 for v in prec_vals if v) / len(prec_vals)
+
+        # ── Context Recall：检查关键事实覆盖 ──────────────────
         chunks_text = "\n\n".join(
             f"[{i+1}] {d.get('content', '')[:400]}" for i, d in enumerate(docs)
         )
-        facts_text = "\n".join(f"- {f}" for f in facts)
+        rec_vals = []
+        for f in facts:
+            prompt = (
+                "判断以下检索到的文档是否明确提到了给定的关键事实。\n\n"
+                f"问题：{question}\n\n"
+                f"检索到的文档：\n{chunks_text}\n\n"
+                f"关键事实：{f}\n\n"
+                "文档中是否明确提到了该事实？只回答 YES 或 NO。"
+            )
+            try:
+                resp = await model([{"role": "user", "content": prompt}])
+                text = await _extract_response(resp)
+                rec_vals.append("YES" in text.upper())
+            except Exception:
+                rec_vals.append(True)
+            await asyncio.sleep(delay_sec)
 
-        prompt = (
-            "你的任务是评估 RAG 检索质量。\n\n"
-            f"【用户问题】\n{question}\n\n"
-            f"【检索到的 {len(docs)} 个文档片段】\n{chunks_text}\n\n"
-            f"【需要验证的关键事实】\n{facts_text}\n\n"
-            "请完成以下两项判断：\n\n"
-            "1. 对每个片段，判断它是否包含回答该问题所需的信息（true=相关，false=无关）。\n"
-            "2. 对每个关键事实，判断这些片段整体是否明确提到了该事实（true=提到，false=未提到）。\n\n"
-            "输出严格 JSON（不要其他文字）：\n"
-            f'{{"precision": [true/false, ...共{len(docs)}个],'
-            f' "recall": [true/false, ...共{len(facts)}个]}}'
-        )
+        recall = sum(1 for v in rec_vals if v) / len(rec_vals) if rec_vals else 0
 
-        try:
-            resp = await model([{"role": "user", "content": prompt}])
-            text = await _extract_response(resp)
-            data = _parse_json(text)
-
-            prec_vals = data.get("precision", [])
-            rec_vals = data.get("recall", [])
-
-            # 确保长度匹配
-            if len(prec_vals) != len(docs):
-                prec_vals = [True] * len(docs)
-            if len(rec_vals) != len(facts):
-                rec_vals = [True] * len(facts)
-
-            precision = sum(1 for v in prec_vals if v) / len(prec_vals)
-            recall = sum(1 for v in rec_vals if v) / len(rec_vals) if rec_vals else 0
-
-            # MRR
-            mrr = 0.0
-            for rank, v in enumerate(prec_vals, 1):
-                if v:
-                    mrr = 1.0 / rank
-                    break
-
-        except Exception:
-            precision = 1.0; recall = 1.0; mrr = 1.0
-            prec_vals = [True] * len(docs)
-            rec_vals = [True] * len(facts)
+        # ── MRR ───────────────────────────────────────────────
+        mrr = 0.0
+        for rank, v in enumerate(prec_vals, 1):
+            if v:
+                mrr = 1.0 / rank
+                break
 
         all_p.append(precision); all_r.append(recall); all_mrr.append(mrr)
         per_cat[category]["precision"].append(precision)
@@ -209,7 +210,7 @@ async def evaluate_retrieval_llm(
             ],
             "precision": round(precision, 2), "recall": round(recall, 2),
             "mrr": round(mrr, 3),
-            "facts_found": sum(1 for v in rec_vals if v) if rec_vals else 0,
+            "facts_found": sum(1 for v in rec_vals if v),
             "facts_total": len(facts),
         })
 
