@@ -107,7 +107,7 @@ async def test_rag_agent():
         },
         {
             "name": "平台功能查询",
-            "query": "阿里商旅平台有哪些功能？",
+            "query": "商旅平台有哪些功能？",
             "expected": ["申请", "预订"]
         },
         {

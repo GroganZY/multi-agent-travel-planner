@@ -802,7 +802,7 @@
     },
     {
       "id": 23,
-      "question": "阿里商旅平台有哪些功能",
+      "question": "商旅平台有哪些功能",
       "category": "平台指南",
       "acceptable_docs": [
         "06_platform_guide.txt"
