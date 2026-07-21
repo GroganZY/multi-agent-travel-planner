@@ -6,17 +6,31 @@
 
 | | `run_eval.py` | `run_eval_ragas.py` |
 |---|---|---|
-| 检索层指标 | 手写，LLM-as-judge batch prompt | 同上（继承 run_eval） |
-| 生成层指标 | 手写，LLM-as-judge | **RAGAs 库**（`pip install ragas`） |
+| 检索层 | 手写 LLM-as-judge | **子类化 RAGAs**：自定义 `KeyFactsContextPrecisionRecall` 类，适配 key_facts 格式 + batch prompt 合并 |
+| 生成层 | 手写 LLM-as-judge | **RAGAs 原版**：`faithfulness` + `answer_relevancy`，无需修改 |
 | 依赖 | 无额外依赖 | ragas, datasets |
-| 优势 | 每道题 Precision+Recall 合并为一次 LLM 调用，省 Token | 生成层指标有社区维护、版本迭代 |
-| 适用场景 | 免费 API 限额、需要每道题详细 debug 信息 | 有充足额度、需要和业界标准对齐 |
+| 设计模式 | 独立实现 | 继承 + 重写 |
 
-### 为什么没有全部换成 RAGAs
+### 子类化的设计思路
 
-RAGAs 的 `context_precision` 和 `context_recall` 需要完整的 ground truth 答案文本（如"北京一线城市住宿标准不超过500元/晚"），而本项目的测试集使用 `key_facts` 格式（如 `["500元", "一线城市"]`），不兼容。生成层的 `faithfulness` 和 `answer_relevancy` 可以直接用 RAGAs——只需 `question` + `answer` + `contexts`，不需要 ground truth 答案。
+```
+RAGAs 原版 ContextPrecision / ContextRecall
+  ├── 输入：question + contexts + reference（完整答案文本）
+  └── 不符合：本项目测试集使用 key_facts 格式
 
-检索层保留手写版还有一个工程上的理由：**每道题的 prompt 同时评估 Precision 和 Recall，一次 LLM 调用完成两个指标**——RAGAs 是分开两次调用，30 题多 30 次调用。
+KeyFactsContextPrecisionRecall（自定义子类）
+  ├── 继承：RAGAs 的指标定义和 LLM-as-judge 方法论
+  ├── 重写：输入从 reference 改为 key_facts + question
+  ├── 优化：Precision + Recall 合并为一次 LLM 调用
+  │        （RAGAs 原版分开两次调用，30 题多 30 次）
+  └── 输出格式：与 RAGAs 原版对齐
+```
+
+### 为什么没有全部删掉用 RAGAs
+
+检索层：RAGAs 的 `context_precision` / `context_recall` 需要完整参考答案文本，本项目测试集使用 key_facts 短词格式，直接使用不兼容。通过子类化保留了 RAGAs 的方法论，只替换了输入适配层和 prompt 批量化。
+
+生成层：直接使用 RAGAs 原版 `faithfulness` 和 `answer_relevancy`，这两个指标仅需 `question + answer + contexts`，完全兼容。
 
 ---
 
