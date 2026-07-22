@@ -119,3 +119,36 @@ Correctness 61.4% 的根因不是 LLM 答错，而是 RAG prompt 没有约束输
 直接回答（一句话）：
 ```
 
+
+---
+
+## 优化实验：简洁 prompt 对 Correctness 的影响
+
+### 改动
+
+仅修改 RAG 生成 prompt，其他条件不变：
+
+```
+Before: "请直接回答"
+After:  "用一句话直接回答。只给出具体的事实和数字，不要引用政策条款、不要展开背景说明。"
+```
+
+### 结果对比（30 题全量，DeepSeek v4-pro）
+
+| 指标 | 优化前 | 优化后 | 变化 | 解读 |
+|------|--------|--------|------|------|
+| Context Precision | 73.9% | 74.4% | +0.5% | 检索层不变，基本持平 |
+| Context Recall | 74.2% | 77.5% | +3.3% | 小幅波动 |
+| **Faithfulness** | **94.6%** | **86.9%** | **-7.7%** | ⚠ 退步：过于简洁导致部分文档有的细节被省略 |
+| **Answer Relevancy** | **77.2%** | **68.6%** | **-8.6%** | ⚠ 退步：答案过短可能被 RAGAs 判为"回答不够充分" |
+| **Answer Correctness** | **61.4%** | **64.8%** | **+3.4%** | ✅ 提升：答案更接近 reference 的简洁行文 |
+
+### 结论
+
+"一句话回答"约束有效提升了 Correctness（+3.4%），但代价显著——Faithfulness 从 94.6% 跌到 86.9%，Relevancy 从 77.2% 跌到 68.6%。简洁和完整是 tradeoff：太简洁导致漏信息，太完整导致 embedding 相似度低。
+
+**最终建议：不在生成 prompt 层做一刀切的简洁约束。** Correctness 的提升应该从检索层入手——修掉检索失败的 case（如#3 #27），这两题修好全局平均就能提 3-5 个点，不牺牲 Faithfulness。因此**还原 prompt 到优化前版本作为正式基线**。
+
+### 每题得分
+
+详见 `evaluation/results/per_question_scores.csv`（优化前）和 `evaluation/results/per_question_scores_optimized.csv`（优化后）。
