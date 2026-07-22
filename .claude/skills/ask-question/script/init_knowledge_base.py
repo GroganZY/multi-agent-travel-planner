@@ -319,12 +319,18 @@ def main():
         if rag_agent.milvus_client.has_collection(rag_agent.collection_name):
             print("   ⚠️  检测到已存在 Collection，正在删除重建以避免数据污染...")
             rag_agent.milvus_client.drop_collection(rag_agent.collection_name)
-            # 重新创建
+            # 重新创建（使用显式 schema，包含 category 字段）
+            from pymilvus import DataType
+            schema = rag_agent.milvus_client.create_schema(auto_id=False)
+            schema.add_field("id", DataType.INT64, is_primary=True)
+            schema.add_field("vector", DataType.FLOAT_VECTOR, dim=rag_agent.embedding_dim)
+            schema.add_field("content", DataType.VARCHAR, max_length=2000)
+            schema.add_field("metadata", DataType.VARCHAR, max_length=1000)
+            schema.add_field("category", DataType.VARCHAR, max_length=64)
             rag_agent.milvus_client.create_collection(
                 collection_name=rag_agent.collection_name,
-                dimension=rag_agent.embedding_dim,
+                schema=schema,
                 metric_type="COSINE",
-                auto_id=False,
             )
             # 新建后必须 load 才能 search
             rag_agent.milvus_client.load_collection(rag_agent.collection_name)

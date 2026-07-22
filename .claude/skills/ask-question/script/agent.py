@@ -120,11 +120,17 @@ class RAGKnowledgeAgent(AgentBase):
         else:
             # 创建新collection
             logger.info(f"Creating new collection: {collection_name}")
+            # 显式声明 category 字段以支持过滤检索
+            schema = self.milvus_client.create_schema(auto_id=False)
+            schema.add_field("id", DataType.INT64, is_primary=True)
+            schema.add_field("vector", DataType.FLOAT_VECTOR, dim=self.embedding_dim)
+            schema.add_field("content", DataType.VARCHAR, max_length=2000)
+            schema.add_field("metadata", DataType.VARCHAR, max_length=1000)
+            schema.add_field("category", DataType.VARCHAR, max_length=64)
             self.milvus_client.create_collection(
                 collection_name=collection_name,
-                dimension=self.embedding_dim,
-                metric_type="COSINE",  # 余弦相似度
-                auto_id=False,
+                schema=schema,
+                metric_type="COSINE",
             )
             logger.info(f"Created new collection: {collection_name}")
 
@@ -197,7 +203,8 @@ class RAGKnowledgeAgent(AgentBase):
                     "id": doc_id,
                     "vector": embedding,
                     "content": content,
-                    "metadata": json.dumps(metadata, ensure_ascii=False)  # 将metadata转为JSON字符串
+                    "metadata": json.dumps(metadata, ensure_ascii=False),
+                    "category": metadata.get("category", ""),  # 用于过滤检索
                 })
 
             # 批量插入到 Milvus
