@@ -28,6 +28,74 @@ def load_rag_agent_class():
 
 RAGKnowledgeAgent = load_rag_agent_class()
 
+def split_faq(text: str, max_chars: int = 800) -> List[str]:
+    """FAQ 文档按 QA 对切分。每对 QA 独立成 chunk，超长 QA 按长度硬切。"""
+    import re
+    chunks = []
+    # 匹配 Q数字: 开头的段落，后面跟 A数字:
+    qa_pattern = re.compile(r'(Q\d+[：:].*?)(?=Q\d+[：:]|\Z)', re.DOTALL)
+    qa_pairs = qa_pattern.findall(text)
+
+    if not qa_pairs:
+        # fallback to old method
+        return split_text(text, max_chars)
+
+    for qa in qa_pairs:
+        qa = qa.strip()
+        if len(qa) <= max_chars:
+            chunks.append(qa)
+        else:
+            # 超长 QA 对按长度硬切
+            remaining = qa
+            while len(remaining) > max_chars:
+                # 尽量在换行处切
+                cut = remaining.rfind('\n', 0, max_chars)
+                if cut < max_chars // 2:
+                    cut = max_chars
+                chunks.append(remaining[:cut].strip())
+                remaining = remaining[cut:].strip()
+            if remaining:
+                chunks.append(remaining)
+    return chunks
+
+
+def split_by_sections(text: str, max_chars: int = 800) -> List[str]:
+    """标准文档按章节标题切分（一、二、三 或 1. 2. 3.）。"""
+    import re
+    # 匹配中文数字章节标题
+    section_pattern = re.compile(
+        r'(?:^|\n)([一二三四五六七八九十]+[、，．.])',
+        re.MULTILINE
+    )
+    # 也匹配阿拉伯数字章节
+    section_pattern_arabic = re.compile(
+        r'(?:^|\n)(\d+[、，．.])',
+        re.MULTILINE
+    )
+
+    sections = []
+    matches = list(section_pattern.finditer(text))
+    if not matches:
+        matches = list(section_pattern_arabic.finditer(text))
+
+    if not matches:
+        return split_text(text, max_chars)
+
+    for i, m in enumerate(matches):
+        start = m.start()
+        end = matches[i+1].start() if i+1 < len(matches) else len(text)
+        section = text[start:end].strip()
+
+        if len(section) <= max_chars:
+            sections.append(section)
+        else:
+            # 章节内部按段落二次切分
+            subs = split_text(section, max_chars, overlap=50)
+            sections.extend(subs)
+
+    return sections
+
+
 def split_text(text: str, max_chars: int = 600, overlap: int = 100) -> List[str]:
     """
     简单的文本切分：优先按段落切分，控制每块大小
@@ -144,8 +212,15 @@ def load_documents_from_directory(directory_path: str) -> List[Dict]:
                     category = cat
                     break
 
-            # --- 文档切分逻辑 ---
-            chunks = split_text(content, max_chars=600, overlap=100)
+            # --- 文档切分逻辑（按文档类型选择策略）---
+            if "faq" in doc_key:
+                chunks = split_faq(content)
+                print(f"     FAQ 按 QA 对切分")
+            elif doc_key in ("travel_standards", "reimbursement_policy", "booking_guide"):
+                chunks = split_by_sections(content)
+                print(f"     标准文档按章节切分")
+            else:
+                chunks = split_text(content, max_chars=600, overlap=100)
             
             for i, chunk_content in enumerate(chunks):
                 doc_id = f"{base_doc_id}_{i+1}"

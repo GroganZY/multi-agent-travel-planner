@@ -221,13 +221,15 @@ class RAGKnowledgeAgent(AgentBase):
             logger.error(f"Error adding documents: {e}")
             return {"status": "error", "message": str(e)}
 
-    def search_knowledge(self, query: str, top_k: Optional[int] = None) -> List[Dict]:
+    def search_knowledge(self, query: str, top_k: Optional[int] = None,
+                         category_filter: Optional[str] = None) -> List[Dict]:
         """
         检索知识库
 
         Args:
             query: 查询文本
             top_k: 返回top k个结果
+            category_filter: 可选，按文档类别过滤（如"差旅规定"）
 
         Returns:
             检索结果列表
@@ -236,20 +238,20 @@ class RAGKnowledgeAgent(AgentBase):
             return []
 
         try:
-            # 确保连接正常
             self._ensure_connection()
             k = top_k or self.top_k
-
-            # 生成查询向量
             query_embedding = self.embedding_model.encode(query).tolist()
 
-            # 在 Milvus 中检索
-            results = self.milvus_client.search(
-                collection_name=self.collection_name,
-                data=[query_embedding],
-                limit=k,
-                output_fields=["id", "content", "metadata"]
-            )
+            search_params = {
+                "collection_name": self.collection_name,
+                "data": [query_embedding],
+                "limit": k,
+                "output_fields": ["id", "content", "metadata"],
+            }
+            if category_filter:
+                search_params["filter"] = f'category == "{category_filter}"'
+
+            results = self.milvus_client.search(**search_params)
 
             # 格式化结果
             retrieved_docs = []

@@ -59,7 +59,7 @@ def init_llm():
             "timeout": float(SYSTEM_CONFIG.get("timeout", 60)),
         },
         generate_kwargs={"extra_body": {"thinking": {"type": "disabled"}}},
-        temperature=0.1,
+        temperature=LLM_CONFIG.get("temperature", 0.7),  # 评估与生产对齐
         max_tokens=LLM_CONFIG.get("max_tokens", 2000),
     )
 
@@ -122,7 +122,8 @@ async def main():
         if idx > 0:
             await asyncio.sleep(5)
 
-        docs = agent.search_knowledge(item["question"], top_k=3)
+        docs = agent.search_knowledge(item["question"], top_k=3,
+                                      category_filter=item.get("category"))
         contexts = [d["content"] for d in docs]
         contexts_list.append(contexts)
 
@@ -130,10 +131,11 @@ async def main():
             f"【片段{i+1}】\n{d['content']}" for i, d in enumerate(docs)
         )
         prompt = (
-            "你是一个商旅知识专家。严格基于以下知识库信息回答问题。\n"
-            "如果知识库中没有相关信息，就说不知道，不要编造。\n\n"
+            "你是一个商旅知识专家。基于以下知识库信息回答问题。\n"
+            "优先给出关键事实和具体数字，不需要展开政策背景。\n"
+            "如果知识库中没有相关信息，就说不知道。\n\n"
             f"【用户问题】\n{item['question']}\n\n"
-            f"【知识库信息】\n{ctx}\n\n请直接回答："
+            f"【知识库信息】\n{ctx}\n\n请回答："
         )
         resp = await model([{"role": "user", "content": prompt}])
         answer = await _extract_response(resp)
