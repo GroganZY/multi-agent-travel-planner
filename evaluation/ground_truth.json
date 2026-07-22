@@ -364,5 +364,183 @@
     ],
     "relevant_section": "一、绿色出行",
     "reference": "公司倡导绿色出差：优先选择高铁等低碳交通方式，300公里以内鼓励高铁而非飞机，市内优先使用公共交通和共享单车。"
+  },
+  {
+    "question": "报销审批流程是怎样的",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": [
+      "主管审批",
+      "财务初审",
+      "3-5个工作日"
+    ],
+    "reference": "报销审批流程为：主管审批（1个工作日）→ 财务初审（2个工作日，审核发票真实性）→ 财务复审（1个工作日，审核金额）→ 审批通过后3-5个工作日付款到工资卡。",
+    "id": 31,
+    "relevant_section": ""
+  },
+  {
+    "question": "多人共同出差怎么报销",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": [
+      "分摊",
+      "一人代开"
+    ],
+    "reference": "多人共同出差时发票可由一人统一开具，报销时需分摊到各人账户，提供同行人员名单和分摊明细。",
+    "id": 32,
+    "relevant_section": ""
+  },
+  {
+    "question": "电子发票有什么要求",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": [
+      "A4纸打印",
+      "不得缩放",
+      "不得重复报销"
+    ],
+    "reference": "电子发票需用A4纸打印不得缩放，与纸质发票同等效力，系统自动识别发票号码防止重复报销。",
+    "id": 33,
+    "relevant_section": ""
+  },
+  {
+    "question": "发票抬头错误怎么办",
+    "category": "报销规定",
+    "expected_doc": "02_reimbursement_policy.txt",
+    "key_facts": [
+      "重开",
+      "作废",
+      "红冲"
+    ],
+    "reference": "发票抬头错误需联系开票方重新开具，原发票需作废或红冲，无法重开的不予报销。",
+    "id": 34,
+    "relevant_section": ""
+  },
+  {
+    "question": "火车票改签有什么规则",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": [
+      "开车前免费改签一次",
+      "不能改日期"
+    ],
+    "reference": "火车票开车前可以免费改签一次，只能改签到同一日期的其他车次，不能改日期（需退票重买），已取票的需到车站窗口办理。",
+    "id": 35,
+    "relevant_section": ""
+  },
+  {
+    "question": "火车票退票费怎么收",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": [
+      "15天以上不收",
+      "48小时至15天5%",
+      "24小时内20%"
+    ],
+    "reference": "开车前15天以上不收退票费，48小时至15天收5%，24至48小时收10%，24小时内收20%。",
+    "id": 36,
+    "relevant_section": ""
+  },
+  {
+    "question": "酒店预订可以免费取消吗",
+    "category": "预订指南",
+    "expected_doc": "03_booking_guide.txt",
+    "key_facts": [
+      "提前24小时",
+      "当天取消收一晚"
+    ],
+    "reference": "酒店预订一般提前24小时可免费取消，当天取消可能收取一晚房费作为取消费用，特价房可能不可取消。",
+    "id": 37,
+    "relevant_section": ""
+  },
+  {
+    "question": "航班被取消了怎么处理",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": [
+      "改签",
+      "退票",
+      "通知主管"
+    ],
+    "reference": "航班取消后立即联系航空公司了解退改方案，评估对行程的影响，通过商旅平台操作改签或退票，及时通知主管和业务相关方，保留所有凭证用于报销。",
+    "id": 38,
+    "relevant_section": ""
+  },
+  {
+    "question": "出差时护照丢失了怎么办",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": [
+      "报警",
+      "使领馆",
+      "临时证件"
+    ],
+    "reference": "护照丢失应立即报警并取得报警证明，联系中国驻当地使领馆申请临时旅行证件，通知公司安全部。",
+    "id": 39,
+    "relevant_section": ""
+  },
+  {
+    "question": "出差遇到自然灾害怎么办",
+    "category": "紧急处理",
+    "expected_doc": "05_emergency_procedures.txt",
+    "key_facts": [
+      "安全第一",
+      "联系公司",
+      "调整行程"
+    ],
+    "reference": "遇到自然灾害应首先确保人身安全，听从当地政府和使领馆安排，及时联系公司安全部，视情况调整或取消后续行程。",
+    "id": 40,
+    "relevant_section": ""
+  },
+  {
+    "question": "上海浦东机场怎么去市中心",
+    "category": "城市指南",
+    "expected_doc": "07_city_specific_tips.txt",
+    "key_facts": [
+      "磁悬浮",
+      "龙阳路",
+      "8分钟"
+    ],
+    "reference": "浦东机场到市中心可乘坐磁悬浮8分钟到龙阳路站，再换乘地铁2号线进入市区，或直接乘坐机场巴士、出租车。",
+    "id": 41,
+    "relevant_section": ""
+  },
+  {
+    "question": "住宿方面怎么做到绿色环保",
+    "category": "环保倡议",
+    "expected_doc": "08_environmental_initiatives.txt",
+    "key_facts": [
+      "自备洗漱用品",
+      "节约用水用电"
+    ],
+    "reference": "绿色住宿建议自备洗漱用品减少一次性用品使用，节约用水用电随手关灯关空调，优先选择有环保认证的酒店。",
+    "id": 42,
+    "relevant_section": ""
+  },
+  {
+    "question": "哪些特殊情况可以申请更高舱位",
+    "category": "差旅规定",
+    "expected_doc": "01_travel_standards.txt",
+    "key_facts": [
+      "1.85米",
+      "孕妇",
+      "健康原因"
+    ],
+    "reference": "身高超过1.85米、孕妇、健康原因或紧急公务需在飞行途中处理重要工作可申请更高舱位，需提前申请并获得审批。",
+    "id": 43,
+    "relevant_section": ""
+  },
+  {
+    "question": "可以使用个人里程兑换机票吗",
+    "category": "FAQ",
+    "expected_doc": "04_faq.txt",
+    "key_facts": [
+      "里程",
+      "积分",
+      "只报销现金部分"
+    ],
+    "reference": "可以使用个人里程或积分预订机票/酒店，但只报销实际支付的现金部分，报销时需提供支付凭证并注明使用了里程或积分。",
+    "id": 44,
+    "relevant_section": ""
   }
 ]

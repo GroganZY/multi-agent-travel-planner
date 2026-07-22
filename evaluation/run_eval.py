@@ -210,12 +210,44 @@ async def main():
         )
         print(result)
 
+        # ── LLM Correctness（独立于 RAGAs embedding-based Correctness）──
+        print("\n" + "=" * 60)
+        print("LLM-based Correctness（逐事实判断，不受 embedding 相似度影响）")
+        print("=" * 60)
+        llm_c_scores = []
+        for idx, item in enumerate(sample):
+            if idx > 0:
+                await asyncio.sleep(5)
+            prompt = (
+                f"问题：{item['question']}\n"
+                f"参考答案：{item.get('reference','')}\n"
+                f"系统答案：{answers[idx]}\n\n"
+                "判断系统答案和参考答案在关键事实上是否一致。\n"
+                "只关注事实准确性，不关注措辞、长度、格式差异。\n"
+                "输出一个 0.0-1.0 的数字（1.0=完全一致，0.5=部分一致，0.0=完全不一致）："
+            )
+            try:
+                resp = await model([{"role": "user", "content": prompt}])
+                text = (await _extract_response(resp)).strip()
+                score = float(text)
+                score = max(0.0, min(1.0, score))
+            except Exception:
+                score = -1.0
+            llm_c_scores.append(score)
+            print(f"  [{item['id']:2d}] {item['question'][:20]:<20} LLM-C={score:.2f}")
+
+        valid_llm_c = [s for s in llm_c_scores if s >= 0]
+        avg_llm_c = sum(valid_llm_c)/len(valid_llm_c) if valid_llm_c else 0
+        print(f"\n  Avg LLM Correctness: {avg_llm_c:.2%}")
+        retrieval["summary"]["avg_llm_correctness"] = round(avg_llm_c, 4)
+
         # 保存每题得分，方便定位低分题
         df = result.to_pandas()
         df['id'] = range(1, len(df) + 1)
         df['question'] = questions
         df['answer'] = answers
         df['reference'] = references
+        df['llm_correctness'] = llm_c_scores
         per_q_path = Path(__file__).parent / "results" / "per_question_scores.csv"
         df.to_csv(str(per_q_path), index=False, encoding='utf-8-sig')
         print(f"\n每题得分已保存至 {per_q_path}")
