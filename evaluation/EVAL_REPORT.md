@@ -23,6 +23,46 @@ RAGAs 0.2.x 的 Answer Correctness 底层是 embedding 语义相似度——把 
 
 ---
 
+## 改进历程
+
+### 各阶段指标对比
+
+| 指标 | Phase 1: 初始版本 | Phase 2: 模型切换+新方法 | Phase 3: 扩容+LLM裁判 |
+|------|-------------------|------------------------|---------------------|
+| **测试数据** | 30 题 | 30 题 | **44 题**（最终） |
+| **LLM** | doubao-mini | **DeepSeek v4-pro** | DeepSeek v4-pro |
+| **评估方法升级** | RAGAs 五指标 | + LLM Correctness | 同 Phase 2 |
+| Context Precision | 73.9% | 73.6% | 72.7% |
+| Context Recall | 74.2% | 77.2% | 75.2% |
+| Faithfulness | 94.6% | 92.1% | 90.0% |
+| Answer Relevancy | 77.2% | 79.6% | 68.1% |
+| Answer Correctness (emb) | 61.4% | 60.8% | 59.8% |
+| **LLM Correctness** | — | **80.7%** | **82.3%** |
+
+### 三个阶段的改进内容
+
+**Phase 1 → Phase 2：模型从 doubao-mini 切换到 DeepSeek v4-pro，评估方法增加 LLM Correctness 裁判。**
+
+- 检索层指标不变（同一份 Milvus 数据），验证了评估稳定性
+- Faithfulness 从 94.6% 降到 92.1%——DeepSeek 的幻觉率比 doubao-mini 略高，但仍在优秀区间
+- LLM Correctness 80.7% 首次揭示了系统真实质量——之前 embedding Correctness 的 61% 严重低估
+
+**Phase 2 → Phase 3：测试数据从 30 题扩容到 44 题（覆盖更均匀），LLM Correctness 继续提升至 82.3%。**
+
+- 新增 14 题填充了报销规定、预订指南、紧急处理、城市指南等原先题量不足的类别
+- LLM Correctness 稳定在 82% 左右，说明系统质量在更大样本下一致
+- Embedding Correctness 持续偏低（~60%），与 LLM Correctness 的差距确认为指标偏见
+
+### 关键结论
+
+1. **系统检索可靠（Precision 73%，Recall 75%）**，能找到约四分之三的正确答案
+2. **答案高度可信（Faithfulness 90%）**，基本不编造
+3. **端到端满意度达标（LLM Correctness 82%）**，超过八成答案事实正确
+4. **Embedding Correctness 不可作为质量指标**，它系统性低估了详细但正确的答案（差 22 个百分点）
+5. **检索层是剩余问题的根因**：LLM Correctness 不到 95% 的 case，全是检索未命中导致的"诚实地说不知道"
+
+---
+
 ## 评估结果（44 题全量，DeepSeek v4-pro）
 
 | 指标 | 分数 | 说明 |
