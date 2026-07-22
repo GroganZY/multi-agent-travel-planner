@@ -179,6 +179,12 @@ async def main():
             "ground_truth": references,
         })
 
+        # AnswerRelevancy / AnswerCorrectness 需要 embedding 模型
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        eval_embeddings = HuggingFaceEmbeddings(
+            model_name=str(project_root / "data" / "models" / "bge-small-zh-v1.5"),
+        )
+
         # RAGAs 0.2.x 内部硬编码了 gpt-4o-mini 作为默认模型。
         # monkey-patch langchain_openai.ChatOpenAI 将 model 参数默认值覆盖为 DeepSeek 模型。
         import langchain_openai
@@ -200,6 +206,7 @@ async def main():
                 answer_relevancy,
                 answer_correctness,
             ],
+            embeddings=eval_embeddings,
         )
         print(result)
 
