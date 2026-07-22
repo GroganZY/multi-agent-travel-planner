@@ -130,11 +130,10 @@ async def main():
             f"【片段{i+1}】\n{d['content']}" for i, d in enumerate(docs)
         )
         prompt = (
-            "你是一个商旅知识专家。基于以下知识库信息回答问题。\n"
-            "优先给出关键事实和具体数字，不需要展开政策背景。\n"
-            "如果知识库中没有相关信息，就说不知道。\n\n"
+            "你是一个商旅知识专家。严格基于以下知识库信息回答问题。\n"
+            "如果知识库中没有相关信息，就说不知道，不要编造。\n\n"
             f"【用户问题】\n{item['question']}\n\n"
-            f"【知识库信息】\n{ctx}\n\n请回答："
+            f"【知识库信息】\n{ctx}\n\n请直接回答："
         )
         resp = await model([{"role": "user", "content": prompt}])
         answer = await _extract_response(resp)

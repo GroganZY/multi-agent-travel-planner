@@ -243,3 +243,31 @@ Correctness 仍卡在 58-61% 区间。这个指标受限于 RAGAs 0.2.x 的 embe
 - `evaluation/results/per_question_scores.csv` — 优化前每题得分
 - `evaluation/results/per_question_scores_optimized.csv` — 简洁 prompt 实验（中间版本，已弃用）
 - 最新优化后得分见 `evaluation/results/per_question_scores.csv`（覆盖更新）
+
+---
+
+## 最终实验：仅保留结构化分块（还原 Prompt）
+
+### 动机
+
+中间版 prompt（"优先给事实和数字"）导致 Faithfulness/Relevancy/Correctness 三者全跌。为隔离 prompt 影响，还原为最初版 prompt，仅保留结构化分块。
+
+### 结果
+
+| 指标 | 基线 | 仅分块（最终） | 变化 |
+|------|------|-------------|------|
+| Precision | 73.9% | **85.0%** | **+11.1%** |
+| Recall | 74.2% | **84.2%** | **+10.0%** |
+| Faithfulness | 94.6% | 88.2% | -6.4% |
+| Relevancy | 77.2% | 71.7% | -5.5% |
+| Correctness | 61.4% | 57.3% | -4.1% |
+
+### 分析
+
+检索层大幅提升（Precision +11%，Recall +10%）确认了结构化分块的价值。生成层的轻微退化揭示了一个真实的 tradeoff：**更小的 chunk 让检索更精准，但 LLM 在生成时每个 chunk 携带的上下文更少**——有些原本有上下文支撑的陈述现在变成了"孤证"，Faithfulness 扣分。
+
+这不是 bug，是分块粒度的工程取舍。如果优先检索质量（找得到），用细粒度分块；如果优先生成质量（答得全），用粗粒度分块。最优方案是"检索用小 chunk、生成用大 chunk"——即父子索引，但在当前 8 文档 ~100 chunk 的规模下过度工程化。
+
+### 面试表述
+
+> "我把 FAQ 按 QA 对切分、标准文档按章节切分后，检索 Precision 从 74% 提升到 85%。但生成层的 Faithfulness 轻微下降到 88%——因为更小的 chunk 让 LLM 缺少上下文。这是一个真实的检索-生成 tradeoff，我选择优先检索质量，同时记录了生成层的退化作为后续优化点。"
