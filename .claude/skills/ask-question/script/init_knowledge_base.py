@@ -212,15 +212,8 @@ def load_documents_from_directory(directory_path: str) -> List[Dict]:
                     category = cat
                     break
 
-            # --- 文档切分逻辑（按文档类型选择策略）---
-            if "faq" in doc_key:
-                chunks = split_faq(content)
-                print(f"     FAQ 按 QA 对切分")
-            elif doc_key in ("travel_standards", "reimbursement_policy", "booking_guide"):
-                chunks = split_by_sections(content)
-                print(f"     标准文档按章节切分")
-            else:
-                chunks = split_text(content, max_chars=600, overlap=100)
+            # --- 文档切分逻辑 ---
+            chunks = split_text(content, max_chars=600, overlap=100)
             
             for i, chunk_content in enumerate(chunks):
                 doc_id = f"{base_doc_id}_{i+1}"
