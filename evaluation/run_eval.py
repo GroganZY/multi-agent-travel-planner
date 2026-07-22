@@ -59,7 +59,7 @@ def init_llm():
             "timeout": float(SYSTEM_CONFIG.get("timeout", 60)),
         },
         generate_kwargs={"extra_body": {"thinking": {"type": "disabled"}}},
-        temperature=LLM_CONFIG.get("temperature", 0.7),  # 评估与生产对齐
+        temperature=0.1,  # RAG 事实性问答用低温保证稳定性
         max_tokens=LLM_CONFIG.get("max_tokens", 2000),
     )
 
@@ -122,8 +122,7 @@ async def main():
         if idx > 0:
             await asyncio.sleep(5)
 
-        docs = agent.search_knowledge(item["question"], top_k=3,
-                                      category_filter=item.get("category"))
+        docs = agent.search_knowledge(item["question"], top_k=3)
         contexts = [d["content"] for d in docs]
         contexts_list.append(contexts)
 
