@@ -57,6 +57,8 @@ RAGAs 0.2.x 的 Answer Correctness 底层是 embedding 语义相似度——把 
 
 ### 2. 生成层优化
 
+> 注：开发过程中基座 LLM 从 doubao 更换为 DeepSeek v4-pro（受 API 配额限制），同时评估方法从手写脚本切换到 RAGAs 框架、测试集从 10 题扩到 44 题。Faithfulness 从 doubao 的 ~64.5%（10 题采样）变为 DeepSeek 的 90.0%（44 题全量），但指标口径不一致，不直接归因于模型本身。
+
 #### Task-aware 输出过滤（已采纳）
 
 **问题**：同一套 RAG 流水线同时服务于两种场景——行程规划（需要浓缩的数值约束）和政策查询（需要完整的条文解释）。统一的输出格式两边都不讨好。
@@ -76,19 +78,7 @@ RAGAs 0.2.x 的 Answer Correctness 底层是 embedding 语义相似度——把 
 
 ---
 
-### 3. 模型升级
-
-将基座模型从 doubao-mini 切换到 DeepSeek v4-pro。这一步效果最显著，但和最与 RAG 架构无关——换到任意 RAG 系统都能受益。
-
-| 指标 | doubao-mini | DeepSeek v4-pro | 变化 |
-|------|------------|----------------|------|
-| Faithfulness | ~64.5% | **90.0%** | **+25.5 ppt** |
-
-> 作为参照系——此前所有 RAG 架构实验（分块策略、prompt 优化）带来的指标波动在 3-11 个百分点之间，且存在 tradeoff。模型更换直接跳了一个台阶，没有副作用。这并不意味着 RAG 架构改进不重要——在模型天花板附近，检索层精度决定了系统还能走多远。
-
----
-
-### 4. 评估体系（为改进提供测量基准）
+### 3. 评估体系（为改进提供测量基准）
 
 从零搭建了完整的 RAG 评估流水线：
 
@@ -104,28 +94,11 @@ embedding 余弦距离对"答案正确但比 reference 更详细"的 case 系统
 
 ---
 
-### 5. 当前瓶颈
+### 4. 当前瓶颈
 
 所有指标收敛到同一个结论：**检索层是天花板**。
 
 LLM Correctness 低于 95% 的 case，100% 是检索未命中（返回的 top-3 chunk 中不含正确答案），模型"诚实地说不知道"。生成侧 Faithfulness 90% 表明给定正确上下文时模型几乎不编造。下一阶段的核心突破应该在检索层——query 改写、category 预过滤、多路召回。
-
----
-
-### 指标变化汇总
-
-下表供快速参考，注意 Faithfulness 在 Phase 2 的下降（92.1%）是 doubao → DeepSeek 切换时因模型风格差异导致，Phase 3 扩题后稳定在 90.0%。
-
-| 指标 | Phase 1: 初始 | Phase 2: +DeepSeek | Phase 3: 44题全量 |
-|------|--------------|-------------------|------------------|
-| **测试数据** | 30 题 | 30 题 | **44 题** |
-| **LLM** | doubao-mini | DeepSeek v4-pro | DeepSeek v4-pro |
-| Context Precision | 73.9% | 73.6% | 72.7% |
-| Context Recall | 74.2% | 77.2% | 75.2% |
-| Faithfulness | 94.6% | 92.1% | 90.0% |
-| Answer Relevancy | 77.2% | 79.6% | 68.1% |
-| Answer Correctness (emb) | 61.4% | 60.8% | 59.8% |
-| **LLM Correctness** | — | **80.7%** | **82.3%** |
 
 ---
 
@@ -159,7 +132,7 @@ LLM Correctness:       82.3%  ← 实际超过 8 成对
 
 ### 生成层（Faithfulness 90.0%，LLM Correctness 82.3%）
 
-Faithfulness 90% 说明答案基本不编造——DeepSeek v4-pro 的幻觉率显著低于此前测试的 doubao-mini（64.5%）。LLM Correctness 82% 说明超过 8 成答案在事实上准确。剩余约 18% 的低分主要来自检索失败（答案不在检索结果中，LLM 诚实地说不知道）。
+Faithfulness 90% 说明答案基本不编造，给定正确的检索上下文时模型几乎不产生幻觉。LLM Correctness 82% 说明超过 8 成答案在事实上准确。剩余约 18% 的低分主要来自检索失败（答案不在检索结果中，LLM 诚实地说不知道）。
 
 ### Correctness 低分的两个根因
 
