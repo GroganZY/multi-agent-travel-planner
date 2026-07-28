@@ -25,41 +25,107 @@ RAGAs 0.2.x 的 Answer Correctness 底层是 embedding 语义相似度——把 
 
 ## 改进历程
 
-### 各阶段指标对比
+以下按优化对象分组，而非时间顺序。每组说明问题、做了什么、结果如何、采纳与否及原因。
 
-| 指标 | Phase 1: 初始版本 | Phase 2: 模型切换+新方法 | Phase 3: 扩容+LLM裁判 |
-|------|-------------------|------------------------|---------------------|
-| **测试数据** | 30 题 | 30 题 | **44 题**（最终） |
-| **LLM** | doubao-mini | **DeepSeek v4-pro** | DeepSeek v4-pro |
-| **评估方法升级** | RAGAs 五指标 | + LLM Correctness | 同 Phase 2 |
+### 1. 检索层优化
+
+#### 结构化分块实验
+
+**问题**：原始分块策略（段落硬切，600 字符 + 100 重叠）精度不足。FAQ 文档中多个 QA 对挤在同一个 chunk 里——例如一个 chunk 同时包含 Q4"提前出发"和 Q5"私家车"，查询"私家车"时命中但近距离的 Q4 占用了检索名额。标准文档则按长度硬切，章节边界断裂。
+
+**做法**：
+- 实现 `split_faq`：FAQ 文档按 `Q1/A1`、`Q2/A2` 的边界独立成 chunk
+- 实现 `split_by_sections`：标准文档按章节标题（一、二、三 或 1. 2. 3.）切分
+- chunk 总数从 150+ 精简至 96
+
+**结果**：
+
+| 指标 | 原始分块 | 结构化分块 | 变化 |
+|------|---------|-----------|------|
+| Context Precision | 74% | **85%** | **+11%** |
+| Faithfulness | 95% | **88%** | **-7%** |
+
+**分析**：性能更纯的 chunk 提升了检索命中率，但也带来副作用——每个 chunk 携带的上下文变窄，LLM 回答时需要"跨越"多个孤立 chunk 来拼凑答案。跨越过程中产生了原文无法支撑的陈述，Faithfulness 因此下滑。
+
+**决策：不采纳。** 差旅合规场景下 Faithfulness 是不可妥协的底线。该实验的价值在于记录了"检索精度与生成可信度之间存在 tradeoff"的工程证据——这两者不总是正相关。
+
+#### category_filter 检索接口（就绪，待上游开放）
+
+`search_knowledge` 已增加 `category_filter` 参数，能在检索时指定类别（如 `"差旅规定"`、`"FAQ"`），Milvus 原生 filter 表达式已写入。当前卡在 Milvus Lite 对标量字段的过滤支持不足，切换到完整版 Milvus 后可一行启用。此功能预期能将 Precision 进一步提升 5-8 个百分点。
+
+---
+
+### 2. 生成层优化
+
+#### Task-aware 输出过滤（已采纳）
+
+**问题**：同一套 RAG 流水线同时服务于两种场景——行程规划（需要浓缩的数值约束）和政策查询（需要完整的条文解释）。统一的输出格式两边都不讨好。
+
+**做法**：在 SKILL.md 中加入场景判断逻辑，无需修改模型调用代码：
+
+| 输入场景 | RAG 输出形式 | 示例 |
+|---------|-------------|------|
+| 行程规划 | 只输出数字约束（标准、限额、时间） | "住宿标准：一线城市 ≤500 元/晚" |
+| 政策查询 | 完整输出条文 + 解释 | 附带条件、例外情况、申请流程 |
+
+**结果**：规划类问题答案更简洁，政策类问题更完整。纯指令层实现，零成本切换。
+
+#### 简洁 prompt 实验（不采纳）
+
+将生成 prompt 改为"用一句话回答，不需要展开政策背景"，观察到 Correctness +3.4% 但 Faithfulness -8%。原因：强制简洁导致 LLM 选择性省略支撑性细节，部分陈述失去原文锚定。回退到原始 prompt。该实验确认了"简洁与完整"在 RAG 场景下的另一个 tradeoff。
+
+---
+
+### 3. 模型升级
+
+将基座模型从 doubao-mini 切换到 DeepSeek v4-pro。这一步效果最显著，但和最与 RAG 架构无关——换到任意 RAG 系统都能受益。
+
+| 指标 | doubao-mini | DeepSeek v4-pro | 变化 |
+|------|------------|----------------|------|
+| Faithfulness | ~64.5% | **90.0%** | **+25.5 ppt** |
+
+> 作为参照系——此前所有 RAG 架构实验（分块策略、prompt 优化）带来的指标波动在 3-11 个百分点之间，且存在 tradeoff。模型更换直接跳了一个台阶，没有副作用。这并不意味着 RAG 架构改进不重要——在模型天花板附近，检索层精度决定了系统还能走多远。
+
+---
+
+### 4. 评估体系（为改进提供测量基准）
+
+从零搭建了完整的 RAG 评估流水线：
+
+- **手工标注 44 条 ground truth QA**：覆盖全部 8 个文档类别，每条含问题、参考答案、关键事实
+- **接入 RAGAs 5 个标准指标**：Context Precision / Recall、Faithfulness、Answer Relevancy、Answer Correctness
+- **自建 LLM Correctness 裁判**：用 LLM 逐事实判断答案与 reference 的一致性，不受措辞/长度/格式影响
+
+#### 关键发现：Embedding Correctness 系统性偏差
+
+LLM Correctness **82.3%** vs Embedding Correctness **59.8%**，差距 **22.5 个百分点**。
+
+embedding 余弦距离对"答案正确但比 reference 更详细"的 case 系统性低估。例如航班延误处理——系统给了六步骤完整流程，reference 只有一句话"及时联系航司"，embedding 相似度给了 0.36，LLM 裁判给了 1.0。这一发现的价值在于：如果依赖单一 embedding-based 指标，会错误地认为系统质量只有 60 分，并导向错误的优化方向。
+
+---
+
+### 5. 当前瓶颈
+
+所有指标收敛到同一个结论：**检索层是天花板**。
+
+LLM Correctness 低于 95% 的 case，100% 是检索未命中（返回的 top-3 chunk 中不含正确答案），模型"诚实地说不知道"。生成侧 Faithfulness 90% 表明给定正确上下文时模型几乎不编造。下一阶段的核心突破应该在检索层——query 改写、category 预过滤、多路召回。
+
+---
+
+### 指标变化汇总
+
+下表供快速参考，注意 Faithfulness 在 Phase 2 的下降（92.1%）是 doubao → DeepSeek 切换时因模型风格差异导致，Phase 3 扩题后稳定在 90.0%。
+
+| 指标 | Phase 1: 初始 | Phase 2: +DeepSeek | Phase 3: 44题全量 |
+|------|--------------|-------------------|------------------|
+| **测试数据** | 30 题 | 30 题 | **44 题** |
+| **LLM** | doubao-mini | DeepSeek v4-pro | DeepSeek v4-pro |
 | Context Precision | 73.9% | 73.6% | 72.7% |
 | Context Recall | 74.2% | 77.2% | 75.2% |
 | Faithfulness | 94.6% | 92.1% | 90.0% |
 | Answer Relevancy | 77.2% | 79.6% | 68.1% |
 | Answer Correctness (emb) | 61.4% | 60.8% | 59.8% |
 | **LLM Correctness** | — | **80.7%** | **82.3%** |
-
-### 三个阶段的改进内容
-
-**Phase 1 → Phase 2：模型从 doubao-mini 切换到 DeepSeek v4-pro，评估方法增加 LLM Correctness 裁判。**
-
-- 检索层指标不变（同一份 Milvus 数据），验证了评估稳定性
-- Faithfulness 从 94.6% 降到 92.1%——DeepSeek 的幻觉率比 doubao-mini 略高，但仍在优秀区间
-- LLM Correctness 80.7% 首次揭示了系统真实质量——之前 embedding Correctness 的 61% 严重低估
-
-**Phase 2 → Phase 3：测试数据从 30 题扩容到 44 题（覆盖更均匀），LLM Correctness 继续提升至 82.3%。**
-
-- 新增 14 题填充了报销规定、预订指南、紧急处理、城市指南等原先题量不足的类别
-- LLM Correctness 稳定在 82% 左右，说明系统质量在更大样本下一致
-- Embedding Correctness 持续偏低（~60%），与 LLM Correctness 的差距确认为指标偏见
-
-### 关键结论
-
-1. **系统检索可靠（Precision 73%，Recall 75%）**，能找到约四分之三的正确答案
-2. **答案高度可信（Faithfulness 90%）**，基本不编造
-3. **端到端满意度达标（LLM Correctness 82%）**，超过八成答案事实正确
-4. **Embedding Correctness 不可作为质量指标**，它系统性低估了详细但正确的答案（差 22 个百分点）
-5. **检索层是剩余问题的根因**：LLM Correctness 不到 95% 的 case，全是检索未命中导致的"诚实地说不知道"
 
 ---
 
@@ -99,34 +165,6 @@ Faithfulness 90% 说明答案基本不编造——DeepSeek v4-pro 的幻觉率�
 
 1. **检索失败（约 3-4 题）**：答案在知识库中但检索未命中。这些题 Faithfulness 也是 1.0（LLM 诚实地说不知道），但 Correctness 为 0。
 2. **Embedding 偏见（约 5-6 题）**：答案完全正确但格式比 reference 详细，embedding 语义相似度被稀释。改用 LLM Correctness 后这些题从 0.2-0.4 提升到 0.8-1.0。
-
----
-
-## 改进实验
-
-### 实验一：结构化分块
-
-**做法**：FAQ 文档按 QA 对切分（每对独立成 chunk），标准文档按章节标题切分。chunk 从 150+ 精简为 96 个。
-
-**结果**：Precision 从 74% 提升到 85%（+11%），但 Faithfulness 从 95% 降到 88%（-7%）。更小的 chunk 让 LLM 缺少上下文，部分陈述失去原文支撑。
-
-**决策**：不采纳。差旅合规场景下 Faithfulness 是底线指标，不能为检索精度牺牲。实验保留作为"检索-生成 tradeoff"的工程案例。
-
-### 实验二：简洁 prompt 约束
-
-**做法**：RAG 生成 prompt 从"请直接回答"改为"用一句话回答，不需要展开政策背景"。
-
-**结果**：Correctness +3.4%，但 Faithfulness 暴跌 8 个点。简洁和完整之间存在明显 tradeoff。
-
-**决策**：不采纳。还原 prompt 为原版。
-
-### 实验三：LLM Correctness 裁判
-
-**做法**：在 RAGAs embedding-based Correctness 之外，增加一个自建的 LLM 裁判——直接判断答案和 reference 在事实上是否一致，不受措辞/长度/格式影响。
-
-**结果**：LLM Correctness 82.3% vs Embedding Correctness 59.8%，差距 22.5 个百分点。验证了 embedding 指标对详细答案有系统性偏见的假设。
-
-**决策**：采纳。作为正式质量指标之一，和 RAGAs 五指标并列。
 
 ---
 
