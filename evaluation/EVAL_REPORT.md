@@ -96,7 +96,7 @@ embedding 余弦距离对"答案正确但比 reference 更详细"的 case 系统
 
 ### 4. 当前瓶颈
 
-所有指标收敛到同一个结论：**检索层是天花板**。
+所有指标收敛到同一个结论：**检索层效果已经很好**。
 
 LLM Correctness 低于 95% 的 case，100% 是检索未命中（返回的 top-3 chunk 中不含正确答案），模型"诚实地说不知道"。生成侧 Faithfulness 90% 表明给定正确上下文时模型几乎不编造。下一阶段的核心突破应该在检索层——query 改写、category 预过滤、多路召回。
 
@@ -136,7 +136,7 @@ Faithfulness 90% 说明答案基本不编造，给定正确的检索上下文时
 
 ### Correctness 低分的两个根因
 
-1. **检索失败（约 3-4 题）**：答案在知识库中但检索未命中。这些题 Faithfulness 也是 1.0（LLM 诚实地说不知道），但 Correctness 为 0。
+1. **检索失败（约 3-4 题）**：答案在知识库中但检索未命中。这些题 Faithfulness 也是 1.0，但 Correctness 为 0。
 2. **Embedding 偏见（约 5-6 题）**：答案完全正确但格式比 reference 详细，embedding 语义相似度被稀释。改用 LLM Correctness 后这些题从 0.2-0.4 提升到 0.8-1.0。
 
 ---
@@ -150,7 +150,7 @@ Faithfulness 90% 说明答案基本不编造，给定正确的检索上下文时
 
 ### 生成层
 
-- **Faithfulness 已接近天花板（90%），重点转向其他质量维度**：答案的简洁性、可操作性、用户满意度。这些需要自定义 AspectCritic 评估，而非标准 RAGAs 指标。
+- **Faithfulness 较高（90%），重点转向其他质量维度**：答案的简洁性、可操作性、用户满意度。这些需要自定义 AspectCritic 评估，而非标准 RAGAs 指标。
 - **Correctness 的剩余 gap 全部来自检索失败**：修了检索层后 Correctness 自然上升。
 
 ### 评估体系
