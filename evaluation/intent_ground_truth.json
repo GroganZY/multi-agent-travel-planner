@@ -1,0 +1,302 @@
+[
+  {
+    "id": 1,
+    "query": "北京住宿标准是多少",
+    "scenario": "政策查询-差旅标准",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {"destination": "北京"}
+    }
+  },
+  {
+    "id": 2,
+    "query": "出差每天餐补多少钱",
+    "scenario": "政策查询-差旅标准",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 3,
+    "query": "高铁能订什么座位等级",
+    "scenario": "政策查询-差旅标准",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 4,
+    "query": "机票提前多久预订",
+    "scenario": "政策查询-预订指南",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 5,
+    "query": "出差申请流程是什么",
+    "scenario": "政策查询-流程",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 6,
+    "query": "上海出差交通标准",
+    "scenario": "政策查询-差旅标准",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {"destination": "上海"}
+    }
+  },
+  {
+    "id": 7,
+    "query": "报销需要什么材料",
+    "scenario": "政策查询-报销",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 8,
+    "query": "航班延误了怎么办",
+    "scenario": "政策查询-应急",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 9,
+    "query": "我要从北京去上海出差",
+    "scenario": "行程规划",
+    "tags": ["单意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"origin": "北京", "destination": "上海", "trip_purpose": "出差"}
+    }
+  },
+  {
+    "id": 10,
+    "query": "下周一去杭州出差三天",
+    "scenario": "行程规划",
+    "tags": ["单意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"destination": "杭州"}
+    }
+  },
+  {
+    "id": 11,
+    "query": "安排去南京拜访客户",
+    "scenario": "行程规划",
+    "tags": ["单意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"destination": "南京"}
+    }
+  },
+  {
+    "id": 12,
+    "query": "周末去杭州玩两天",
+    "scenario": "行程规划-旅游",
+    "tags": ["单意图", "行程规划", "旅游"],
+    "expected": {
+      "agents": ["event_collection", "itinerary_planning"],
+      "entities": {"destination": "杭州"}
+    }
+  },
+  {
+    "id": 13,
+    "query": "帮我规划从深圳到广州出差",
+    "scenario": "行程规划",
+    "tags": ["单意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"origin": "深圳", "destination": "广州", "trip_purpose": "出差"}
+    }
+  },
+  {
+    "id": 14,
+    "query": "从北京去上海出差三天，帮我规划行程",
+    "scenario": "组合查询-规划+政策",
+    "tags": ["多意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"origin": "北京", "destination": "上海"}
+    }
+  },
+  {
+    "id": 15,
+    "query": "下周一去杭州出差，顺便查一下住宿标准",
+    "scenario": "组合查询-规划+政策",
+    "tags": ["多意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"destination": "杭州"}
+    }
+  },
+  {
+    "id": 16,
+    "query": "去广州出差一周，帮我规划并查一下差旅规定",
+    "scenario": "组合查询-规划+政策",
+    "tags": ["多意图", "行程规划"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "itinerary_planning"],
+      "entities": {"destination": "广州"}
+    }
+  },
+  {
+    "id": 17,
+    "query": "我喜欢住汉庭酒店",
+    "scenario": "偏好记录",
+    "tags": ["单意图", "偏好"],
+    "expected": {
+      "agents": ["preference"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 18,
+    "query": "我常坐国航，靠窗座位",
+    "scenario": "偏好记录",
+    "tags": ["单意图", "偏好"],
+    "expected": {
+      "agents": ["preference"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 19,
+    "query": "家住北京朝阳区，这是我的常驻地",
+    "scenario": "偏好记录",
+    "tags": ["单意图", "偏好"],
+    "expected": {
+      "agents": ["preference"],
+      "entities": {"origin": "北京"}
+    }
+  },
+  {
+    "id": 20,
+    "query": "北京明天天气怎么样",
+    "scenario": "信息查询-天气",
+    "tags": ["单意图", "信息查询"],
+    "expected": {
+      "agents": ["information_query"],
+      "entities": {"destination": "北京"}
+    }
+  },
+  {
+    "id": 21,
+    "query": "上海有什么好玩的景点",
+    "scenario": "信息查询-旅游",
+    "tags": ["单意图", "信息查询"],
+    "expected": {
+      "agents": ["information_query"],
+      "entities": {"destination": "上海"}
+    }
+  },
+  {
+    "id": 22,
+    "query": "查一下杭州最近的天气",
+    "scenario": "信息查询-天气",
+    "tags": ["单意图", "信息查询"],
+    "expected": {
+      "agents": ["information_query"],
+      "entities": {"destination": "杭州"}
+    }
+  },
+  {
+    "id": 23,
+    "query": "我去过哪些地方出差",
+    "scenario": "记忆查询",
+    "tags": ["单意图", "记忆查询"],
+    "expected": {
+      "agents": ["memory_query"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 24,
+    "query": "我上次去北京是什么时候",
+    "scenario": "记忆查询",
+    "tags": ["单意图", "记忆查询"],
+    "expected": {
+      "agents": ["memory_query"],
+      "entities": {"destination": "北京"}
+    }
+  },
+  {
+    "id": 25,
+    "query": "查一下我的出差记录",
+    "scenario": "记忆查询",
+    "tags": ["单意图", "记忆查询"],
+    "expected": {
+      "agents": ["memory_query"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 26,
+    "query": "从上海出差，我喜欢住万豪酒店，帮忙规划行程",
+    "scenario": "组合查询-规划+偏好",
+    "tags": ["多意图", "行程规划", "偏好"],
+    "expected": {
+      "agents": ["event_collection", "rag_knowledge", "preference", "itinerary_planning"],
+      "entities": {"origin": "上海"}
+    }
+  },
+  {
+    "id": 27,
+    "query": "我之前出差住的什么酒店，帮我查一下记录",
+    "scenario": "组合查询-记忆+偏好",
+    "tags": ["多意图", "记忆查询"],
+    "expected": {
+      "agents": ["memory_query"],
+      "entities": {}
+    }
+  },
+  {
+    "id": 28,
+    "query": "北京出差住宿标准和天气怎么样",
+    "scenario": "组合查询-政策+天气",
+    "tags": ["多意图", "政策查询", "信息查询"],
+    "expected": {
+      "agents": ["rag_knowledge", "information_query"],
+      "entities": {"destination": "北京"}
+    }
+  },
+  {
+    "id": 29,
+    "query": "帮我推荐上海适合商务会议的酒店",
+    "scenario": "信息查询-商务",
+    "tags": ["单意图", "信息查询"],
+    "expected": {
+      "agents": ["information_query"],
+      "entities": {"destination": "上海"}
+    }
+  },
+  {
+    "id": 30,
+    "query": "深圳出差标准",
+    "scenario": "政策查询-差旅标准",
+    "tags": ["单意图", "政策查询"],
+    "expected": {
+      "agents": ["rag_knowledge"],
+      "entities": {"destination": "深圳"}
+    }
+  }
+]

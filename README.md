@@ -183,6 +183,42 @@ OrchestrationAgent (协调调度)
 
 ---
 
+## 评估结果
+
+### RAG 检索质量
+
+44 题手工标注 ground truth，覆盖全部 8 个文档类别。DeepSeek v4-pro + BGE-small-zh-v1.5 评估结果：
+
+| 指标 | 分数 | 评估方式 |
+|------|------|---------|
+| Context Precision | 72.7% | RAGAs (LLM-as-judge) |
+| Context Recall | 75.2% | RAGAs (LLM-as-judge) |
+| Faithfulness | 90.0% | RAGAs (LLM-as-judge) |
+| LLM Correctness | **82.3%** | 自建 LLM 逐事实裁判 |
+| Answer Relevancy | 68.1% | RAGAs (LLM+embedding) |
+| Answer Correctness (embedding) | 59.8% | RAGAs (embedding 余弦距离) |
+
+> **关键发现**：LLM Correctness 比 Embedding Correctness 高 22.5 个百分点。embedding 余弦距离对"答案正确但比 reference 更详细"的 case 系统性低估。后续以 LLM Correctness 为质量基准。
+
+完整的实验记录（结构化分块 tradeoff、prompt 约束实验、LLM Correctness 裁判）详见 [evaluation/EVAL_REPORT.md](evaluation/EVAL_REPORT.md)。
+
+### 意图分类准确率
+
+30 题手动标注 ground truth，覆盖全部 6 个 Skill Agent 及组合场景。评估 IntentionAgent 的路由决策质量：
+
+| 指标 | 分数 | 说明 |
+|------|------|------|
+| Agent 调度精确匹配率 | **70.0%** | 预测的 agent 集合与期望完全一致 |
+| Agent 调度 Precision | 88.5% | 调度了的 agent 中正确的比例 |
+| Agent 调度 Recall | 96.7% | 该调度的 agent 中被调度的比例 |
+| 实体提取准确率 | 86.0% | key_entities 字段精确匹配率 |
+
+**关键发现**：高 Recall（96.7%）说明系统几乎不会漏掉该调度的 agent；中 Precision（88.5%）说明存在一定程度的过度调度（主要在行程规划场景中错误附加 preference agent，以及 memory_query 被误判为 information_query 的边界情况）。
+
+详见 [evaluation/results/intent_eval_*.md](evaluation/results/intent_eval_20260729_124723.md)。
+
+---
+
 ## 注意事项
 
 - **API Key**：`config.py` 中 `LLM_CONFIG["api_key"]` 从环境变量 `LLM_API_KEY` 读取，未设置时默认为空字符串。启动前需通过环境变量或直接修改 `config.py` 填入豆包 API Key。`DB_CONFIG["password"]` 为 Docker 容器内 PostgreSQL 的本地密码，不涉及生产密钥。
